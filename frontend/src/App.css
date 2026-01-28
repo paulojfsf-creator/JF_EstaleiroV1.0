@@ -1,34 +1,109 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Main App Styles */
+.sidebar {
+    @apply fixed left-0 top-0 h-full w-64 bg-slate-900 text-white transition-transform duration-300 z-50;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.sidebar.collapsed {
+    @apply -translate-x-full md:translate-x-0 md:w-20;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.main-content {
+    @apply ml-0 md:ml-64 min-h-screen bg-slate-50 transition-all duration-300;
 }
 
-.App-link {
-    color: #61dafb;
+.main-content.expanded {
+    @apply md:ml-20;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.nav-item {
+    @apply flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer;
+}
+
+.nav-item.active {
+    @apply bg-slate-800 text-white border-l-4 border-amber-500;
+}
+
+.stat-card {
+    @apply bg-white border border-slate-200 rounded-sm p-6 hover:shadow-md transition-shadow;
+}
+
+.data-table {
+    @apply w-full bg-white border border-slate-200 rounded-sm overflow-hidden;
+}
+
+.data-table th {
+    @apply bg-slate-900 text-white px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider;
+}
+
+.data-table td {
+    @apply px-4 py-3 border-b border-slate-100 text-sm;
+}
+
+.data-table tr:hover td {
+    @apply bg-slate-50;
+}
+
+.badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-sm text-xs font-medium border;
+}
+
+.form-input {
+    @apply w-full bg-white border border-slate-300 rounded-sm px-4 py-2.5 focus:ring-2 focus:ring-slate-900 focus:border-transparent outline-none transition-all;
+}
+
+.btn-primary {
+    @apply bg-slate-900 text-white hover:bg-slate-800 rounded-sm font-medium px-6 py-2.5 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+    @apply bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 rounded-sm font-medium px-6 py-2.5 transition-all;
+}
+
+.btn-accent {
+    @apply bg-amber-500 text-slate-900 hover:bg-amber-400 rounded-sm font-medium px-6 py-2.5 transition-all active:scale-95;
+}
+
+.btn-danger {
+    @apply bg-red-500 text-white hover:bg-red-600 rounded-sm font-medium px-4 py-2 transition-all;
+}
+
+.alert-card {
+    @apply bg-amber-50 border border-amber-200 rounded-sm p-4 flex items-start gap-3;
+}
+
+.alert-card.urgent {
+    @apply bg-red-50 border-red-200;
+}
+
+.page-header {
+    @apply mb-8;
+}
+
+.page-title {
+    @apply text-3xl font-black text-slate-900 tracking-tight;
+}
+
+.page-subtitle {
+    @apply text-slate-500 mt-1;
+}
+
+/* Modal styles */
+.modal-overlay {
+    @apply fixed inset-0 bg-black/50 z-50 flex items-center justify-center;
+}
+
+.modal-content {
+    @apply bg-white rounded-sm shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto;
+}
+
+.modal-header {
+    @apply px-6 py-4 border-b border-slate-200;
+}
+
+.modal-body {
+    @apply px-6 py-4;
+}
+
+.modal-footer {
+    @apply px-6 py-4 border-t border-slate-200 flex justify-end gap-3;
 }
