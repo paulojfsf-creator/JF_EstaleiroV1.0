@@ -222,10 +222,10 @@ export default function Locais() {
               </div>
               <div className="space-y-2">
                 <Label>Obra Associada</Label>
-                <Select value={formData.obra_id} onValueChange={(v) => setFormData({...formData, obra_id: v})}>
+                <Select value={formData.obra_id || "none"} onValueChange={(v) => setFormData({...formData, obra_id: v === "none" ? "" : v})}>
                   <SelectTrigger className="rounded-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma</SelectItem>
+                    <SelectItem value="none">Nenhuma</SelectItem>
                     {obras.map(o => <SelectItem key={o.id} value={o.id}>{o.codigo} - {o.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
