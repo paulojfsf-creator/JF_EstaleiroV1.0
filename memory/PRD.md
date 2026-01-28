@@ -19,6 +19,8 @@ Criar uma aplicação de gestão de armazém de construção civil, com controlo
 - Movimentos de Stock (entrada/saída de materiais com atualização automática)
 - Movimentos de Viaturas (registo de km e utilização)
 - Alertas (stock baixo, vistoria/seguro a expirar)
+- Notificações por email (Resend) para alertas de vistoria/seguro
+- Upload de fotos para equipamentos e viaturas
 - Exportação de relatórios (PDF/Excel)
 
 ## What's Been Implemented (Janeiro 2026)
@@ -33,14 +35,16 @@ Criar uma aplicação de gestão de armazém de construção civil, com controlo
 - ✅ Movimentos de Ativos (Saída/Devolução) com atualização de local
 - ✅ Movimentos de Stock com atualização automática do stock
 - ✅ Movimentos de Viaturas com tracking de km
-- ✅ Alertas automáticos (stock baixo, vistoria/seguro)
+- ✅ Alertas automáticos (stock baixo, vistoria/seguro - 7 dias antes)
+- ✅ Upload de fotos (POST /api/upload)
+- ✅ Notificações por email (Resend) para geral@josefirmino.pt
 - ✅ Exportação PDF e Excel
 
 ### Frontend (React + Tailwind + Shadcn/UI)
 - ✅ Página de Login/Registo
 - ✅ Dashboard com resumos e alertas
-- ✅ Gestão de Equipamentos (formulário completo)
-- ✅ Gestão de Viaturas (com datas de vistoria/seguro)
+- ✅ Gestão de Equipamentos (com upload de fotos)
+- ✅ Gestão de Viaturas (com upload de fotos e botão Enviar Alertas)
 - ✅ Gestão de Materiais (com stock atual/mínimo)
 - ✅ Gestão de Locais (com tipos)
 - ✅ Gestão de Obras (com código)
@@ -53,12 +57,18 @@ Criar uma aplicação de gestão de armazém de construção civil, com controlo
 - ✅ Sidebar colapsável com menu de movimentos
 
 ## Technical Stack
-- **Backend**: FastAPI, MongoDB, Motor, JWT, bcrypt
+- **Backend**: FastAPI, MongoDB, Motor, JWT, bcrypt, Resend
 - **Frontend**: React 19, Tailwind CSS, Shadcn/UI, Axios
 - **Export**: reportlab (PDF), openpyxl (Excel)
+- **Email**: Resend (notificações de alertas)
+
+## Configuração de Email
+- Email de destino: geral@josefirmino.pt
+- Alertas enviados: 7 dias antes da expiração
+- Nota: Para enviar emails para domínios externos, é necessário verificar o domínio em resend.com/domains
 
 ## Next Tasks
-1. Upload de fotos para equipamentos/viaturas
+1. Verificar domínio no Resend para envio de emails
 2. Dashboard com gráficos de utilização
 3. Sistema de códigos de barras/QR codes
 4. Relatórios personalizáveis por período
