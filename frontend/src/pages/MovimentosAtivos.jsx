@@ -175,20 +175,20 @@ export default function MovimentosAtivos() {
               </div>
               <div className="space-y-2">
                 <Label>Origem</Label>
-                <Select value={formData.origem_id} onValueChange={(v) => setFormData({...formData, origem_id: v})}>
+                <Select value={formData.origem_id || "none"} onValueChange={(v) => setFormData({...formData, origem_id: v === "none" ? "" : v})}>
                   <SelectTrigger className="rounded-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {locais.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo} - {l.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Destino</Label>
-                <Select value={formData.destino_id} onValueChange={(v) => setFormData({...formData, destino_id: v})}>
+                <Select value={formData.destino_id || "none"} onValueChange={(v) => setFormData({...formData, destino_id: v === "none" ? "" : v})}>
                   <SelectTrigger className="rounded-sm"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {locais.map(l => <SelectItem key={l.id} value={l.id}>{l.codigo} - {l.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
