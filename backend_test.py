@@ -417,8 +417,17 @@ class WarehouseAPITester:
         for obra_id in self.created_resources['obras']:
             self.make_request('DELETE', f'obras/{obra_id}', expected_status=200)
         
-        for machine_id in self.created_resources['machines']:
-            self.make_request('DELETE', f'machines/{machine_id}', expected_status=200)
+        for equipamento_id in self.created_resources['equipamentos']:
+            self.make_request('DELETE', f'equipamentos/{equipamento_id}', expected_status=200)
+            
+        for viatura_id in self.created_resources['viaturas']:
+            self.make_request('DELETE', f'viaturas/{viatura_id}', expected_status=200)
+            
+        for material_id in self.created_resources['materiais']:
+            self.make_request('DELETE', f'materiais/{material_id}', expected_status=200)
+            
+        for local_id in self.created_resources['locais']:
+            self.make_request('DELETE', f'locais/{local_id}', expected_status=200)
             
         for equipment_id in self.created_resources['equipment']:
             self.make_request('DELETE', f'equipment/{equipment_id}', expected_status=200)
