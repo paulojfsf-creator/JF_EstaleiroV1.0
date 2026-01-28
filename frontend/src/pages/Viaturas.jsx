@@ -300,6 +300,13 @@ export default function Viaturas() {
                 <Label>URL Foto</Label>
                 <Input value={formData.foto} onChange={(e) => setFormData({...formData, foto: e.target.value})} placeholder="https://..." className="rounded-sm" />
               </div>
+              <div className="md:col-span-2">
+                <ImageUpload 
+                  value={formData.foto} 
+                  onChange={(url) => setFormData({...formData, foto: url})}
+                  label="Ou carregar foto"
+                />
+              </div>
               <div className="space-y-2 md:col-span-2">
                 <Label>Observações</Label>
                 <Textarea value={formData.observacoes} onChange={(e) => setFormData({...formData, observacoes: e.target.value})} className="rounded-sm" rows={2} />
