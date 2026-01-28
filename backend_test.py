@@ -459,16 +459,15 @@ class WarehouseAPITester:
 
         # CRUD Tests
         print("\n📦 Resource CRUD Tests")
-        self.test_machines_crud()
-        self.test_equipment_crud()
-        self.test_tools_crud()
-        self.test_vehicles_crud()
-        self.test_materials_crud()
+        self.test_locais_crud()
         self.test_obras_crud()
+        self.test_equipamentos_crud()
+        self.test_viaturas_crud()
+        self.test_materiais_crud()
 
-        # Assignment Tests
-        print("\n🔗 Resource Assignment Tests")
-        self.test_resource_assignments()
+        # Movement Tests
+        print("\n🔄 Movement Tests")
+        self.test_movement_operations()
 
         # Summary and Export Tests
         print("\n📊 Summary and Export Tests")
