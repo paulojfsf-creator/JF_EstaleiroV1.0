@@ -42,6 +42,7 @@ export default function Viaturas() {
   const [viaturas, setViaturas] = useState([]);
   const [locais, setLocais] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sendingAlerts, setSendingAlerts] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -77,6 +78,20 @@ export default function Viaturas() {
       toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendAlerts = async () => {
+    setSendingAlerts(true);
+    try {
+      const response = await axios.post(`${API}/alerts/send`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(response.data.message);
+    } catch (error) {
+      toast.error("Erro ao enviar alertas");
+    } finally {
+      setSendingAlerts(false);
     }
   };
 
