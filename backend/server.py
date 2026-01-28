@@ -57,79 +57,133 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user: UserResponse
 
-# ==================== RESOURCE MODELS ====================
-class ResourceBase(BaseModel):
-    name: str
-    quantity: int = 1
-    location: str = ""
-    status: str = "available"  # available, in_use, maintenance, broken
-    obra_id: Optional[str] = None
+# ==================== EQUIPAMENTO MODEL ====================
+class EquipamentoCreate(BaseModel):
+    codigo: str
+    descricao: str
+    marca: str = ""
+    modelo: str = ""
+    data_aquisicao: Optional[str] = None
+    ativo: bool = True
+    categoria: str = ""
+    numero_serie: str = ""
+    responsavel: str = ""
+    estado_conservacao: str = "Bom"  # Bom, Razoável, Mau
+    foto: str = ""
+    local_id: Optional[str] = None
 
-class MachineCreate(ResourceBase):
-    next_maintenance: Optional[str] = None
-    maintenance_interval_days: int = 90
-
-class Machine(MachineCreate):
+class Equipamento(EquipamentoCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: str = "machine"
+    tipo: str = "Equipamento"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-class EquipmentCreate(ResourceBase):
-    pass
+# ==================== VIATURA MODEL ====================
+class ViaturaCreate(BaseModel):
+    matricula: str
+    marca: str = ""
+    modelo: str = ""
+    combustivel: str = "Gasoleo"  # Gasoleo, Gasolina, Eletrico, Hibrido
+    ativa: bool = True
+    foto: str = ""
+    data_vistoria: Optional[str] = None
+    data_seguro: Optional[str] = None
+    documento_unico: str = ""
+    apolice_seguro: str = ""
+    observacoes: str = ""
+    local_id: Optional[str] = None
 
-class Equipment(EquipmentCreate):
+class Viatura(ViaturaCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: str = "equipment"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-class ToolCreate(ResourceBase):
-    pass
-
-class Tool(ToolCreate):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: str = "tool"
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-
-class VehicleCreate(ResourceBase):
-    plate: str = ""
-    next_maintenance: Optional[str] = None
-    maintenance_interval_days: int = 30
-
-class Vehicle(VehicleCreate):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: str = "vehicle"
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-
-class MaterialCreate(ResourceBase):
-    unit: str = "unidade"
+# ==================== MATERIAL MODEL ====================
+class MaterialCreate(BaseModel):
+    codigo: str
+    descricao: str
+    unidade: str = "unidade"  # unidade, kg, m, m2, m3, litro, saco, palete
+    stock_atual: float = 0
+    stock_minimo: float = 0
+    ativo: bool = True
+    local_id: Optional[str] = None
 
 class Material(MaterialCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    type: str = "material"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-# ==================== OBRA MODELS ====================
+# ==================== LOCAL MODEL ====================
+class LocalCreate(BaseModel):
+    codigo: str
+    nome: str
+    tipo: str = "ARM"  # ARM (Armazém), OFI (Oficina), OBR (Obra), OBS (Obsoleto)
+    obra_id: Optional[str] = None
+    ativo: bool = True
+
+class Local(LocalCreate):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+# ==================== OBRA MODEL ====================
 class ObraCreate(BaseModel):
-    name: str
-    address: str = ""
-    client_name: str = ""
-    status: str = "active"  # active, completed, paused
+    codigo: str
+    nome: str
+    endereco: str = ""
+    cliente: str = ""
+    estado: str = "Ativa"  # Ativa, Concluida, Pausada
 
 class Obra(ObraCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-# ==================== ASSIGNMENT MODEL ====================
-class AssignmentCreate(BaseModel):
-    resource_id: str
-    resource_type: str  # machine, equipment, tool, vehicle, material
-    obra_id: str
+# ==================== MOVIMENTO ATIVO MODEL ====================
+class MovimentoAtivoCreate(BaseModel):
+    ativo_id: str
+    tipo_ativo: str  # equipamento
+    tipo_movimento: str  # Saida, Devolucao
+    origem_id: Optional[str] = None
+    destino_id: Optional[str] = None
+    responsavel: str = ""
+    observacoes: str = ""
+
+class MovimentoAtivo(MovimentoAtivoCreate):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    data_hora: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+# ==================== MOVIMENTO STOCK MODEL ====================
+class MovimentoStockCreate(BaseModel):
+    material_id: str
+    tipo_movimento: str  # Entrada, Saida
+    quantidade: float
+    obra_id: Optional[str] = None
+    fornecedor: str = ""
+    documento: str = ""
+    responsavel: str = ""
+    observacoes: str = ""
+
+class MovimentoStock(MovimentoStockCreate):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    data_hora: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+# ==================== MOVIMENTO VIATURA MODEL ====================
+class MovimentoViaturaCreate(BaseModel):
+    viatura_id: str
+    obra_id: Optional[str] = None
+    condutor: str = ""
+    km_inicial: float = 0
+    km_final: float = 0
+    data: str = ""
+    observacoes: str = ""
+
+class MovimentoViatura(MovimentoViaturaCreate):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 # ==================== AUTH FUNCTIONS ====================
 def hash_password(password: str) -> str:
@@ -196,162 +250,148 @@ async def login(data: UserLogin):
 async def get_me(user=Depends(get_current_user)):
     return UserResponse(id=user["id"], name=user["name"], email=user["email"])
 
-# ==================== MACHINES ROUTES ====================
-@api_router.get("/machines", response_model=List[Machine])
-async def get_machines(user=Depends(get_current_user)):
-    items = await db.machines.find({}, {"_id": 0}).to_list(1000)
+# ==================== EQUIPAMENTO ROUTES ====================
+@api_router.get("/equipamentos", response_model=List[Equipamento])
+async def get_equipamentos(user=Depends(get_current_user)):
+    items = await db.equipamentos.find({}, {"_id": 0}).to_list(1000)
     return items
 
-@api_router.post("/machines", response_model=Machine)
-async def create_machine(data: MachineCreate, user=Depends(get_current_user)):
-    machine = Machine(**data.model_dump())
-    doc = machine.model_dump()
-    await db.machines.insert_one(doc)
-    return machine
+@api_router.post("/equipamentos", response_model=Equipamento)
+async def create_equipamento(data: EquipamentoCreate, user=Depends(get_current_user)):
+    # Check if codigo already exists
+    existing = await db.equipamentos.find_one({"codigo": data.codigo}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Código já existe")
+    
+    equipamento = Equipamento(**data.model_dump())
+    doc = equipamento.model_dump()
+    await db.equipamentos.insert_one(doc)
+    return equipamento
 
-@api_router.put("/machines/{machine_id}", response_model=Machine)
-async def update_machine(machine_id: str, data: MachineCreate, user=Depends(get_current_user)):
-    existing = await db.machines.find_one({"id": machine_id}, {"_id": 0})
+@api_router.put("/equipamentos/{equipamento_id}", response_model=Equipamento)
+async def update_equipamento(equipamento_id: str, data: EquipamentoCreate, user=Depends(get_current_user)):
+    existing = await db.equipamentos.find_one({"id": equipamento_id}, {"_id": 0})
     if not existing:
-        raise HTTPException(status_code=404, detail="Machine not found")
+        raise HTTPException(status_code=404, detail="Equipamento não encontrado")
     
     update_data = data.model_dump()
-    await db.machines.update_one({"id": machine_id}, {"$set": update_data})
-    updated = await db.machines.find_one({"id": machine_id}, {"_id": 0})
+    await db.equipamentos.update_one({"id": equipamento_id}, {"$set": update_data})
+    updated = await db.equipamentos.find_one({"id": equipamento_id}, {"_id": 0})
     return updated
 
-@api_router.delete("/machines/{machine_id}")
-async def delete_machine(machine_id: str, user=Depends(get_current_user)):
-    result = await db.machines.delete_one({"id": machine_id})
+@api_router.delete("/equipamentos/{equipamento_id}")
+async def delete_equipamento(equipamento_id: str, user=Depends(get_current_user)):
+    result = await db.equipamentos.delete_one({"id": equipamento_id})
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Machine not found")
-    return {"message": "Machine deleted"}
+        raise HTTPException(status_code=404, detail="Equipamento não encontrado")
+    return {"message": "Equipamento eliminado"}
 
-# ==================== EQUIPMENT ROUTES ====================
-@api_router.get("/equipment", response_model=List[Equipment])
-async def get_equipment(user=Depends(get_current_user)):
-    items = await db.equipment.find({}, {"_id": 0}).to_list(1000)
+# ==================== VIATURA ROUTES ====================
+@api_router.get("/viaturas", response_model=List[Viatura])
+async def get_viaturas(user=Depends(get_current_user)):
+    items = await db.viaturas.find({}, {"_id": 0}).to_list(1000)
     return items
 
-@api_router.post("/equipment", response_model=Equipment)
-async def create_equipment(data: EquipmentCreate, user=Depends(get_current_user)):
-    equipment = Equipment(**data.model_dump())
-    doc = equipment.model_dump()
-    await db.equipment.insert_one(doc)
-    return equipment
+@api_router.post("/viaturas", response_model=Viatura)
+async def create_viatura(data: ViaturaCreate, user=Depends(get_current_user)):
+    existing = await db.viaturas.find_one({"matricula": data.matricula}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Matrícula já existe")
+    
+    viatura = Viatura(**data.model_dump())
+    doc = viatura.model_dump()
+    await db.viaturas.insert_one(doc)
+    return viatura
 
-@api_router.put("/equipment/{equipment_id}", response_model=Equipment)
-async def update_equipment(equipment_id: str, data: EquipmentCreate, user=Depends(get_current_user)):
-    existing = await db.equipment.find_one({"id": equipment_id}, {"_id": 0})
+@api_router.put("/viaturas/{viatura_id}", response_model=Viatura)
+async def update_viatura(viatura_id: str, data: ViaturaCreate, user=Depends(get_current_user)):
+    existing = await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
     if not existing:
-        raise HTTPException(status_code=404, detail="Equipment not found")
+        raise HTTPException(status_code=404, detail="Viatura não encontrada")
     
     update_data = data.model_dump()
-    await db.equipment.update_one({"id": equipment_id}, {"$set": update_data})
-    updated = await db.equipment.find_one({"id": equipment_id}, {"_id": 0})
+    await db.viaturas.update_one({"id": viatura_id}, {"$set": update_data})
+    updated = await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
     return updated
 
-@api_router.delete("/equipment/{equipment_id}")
-async def delete_equipment(equipment_id: str, user=Depends(get_current_user)):
-    result = await db.equipment.delete_one({"id": equipment_id})
+@api_router.delete("/viaturas/{viatura_id}")
+async def delete_viatura(viatura_id: str, user=Depends(get_current_user)):
+    result = await db.viaturas.delete_one({"id": viatura_id})
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Equipment not found")
-    return {"message": "Equipment deleted"}
+        raise HTTPException(status_code=404, detail="Viatura não encontrada")
+    return {"message": "Viatura eliminada"}
 
-# ==================== TOOLS ROUTES ====================
-@api_router.get("/tools", response_model=List[Tool])
-async def get_tools(user=Depends(get_current_user)):
-    items = await db.tools.find({}, {"_id": 0}).to_list(1000)
+# ==================== MATERIAL ROUTES ====================
+@api_router.get("/materiais", response_model=List[Material])
+async def get_materiais(user=Depends(get_current_user)):
+    items = await db.materiais.find({}, {"_id": 0}).to_list(1000)
     return items
 
-@api_router.post("/tools", response_model=Tool)
-async def create_tool(data: ToolCreate, user=Depends(get_current_user)):
-    tool = Tool(**data.model_dump())
-    doc = tool.model_dump()
-    await db.tools.insert_one(doc)
-    return tool
-
-@api_router.put("/tools/{tool_id}", response_model=Tool)
-async def update_tool(tool_id: str, data: ToolCreate, user=Depends(get_current_user)):
-    existing = await db.tools.find_one({"id": tool_id}, {"_id": 0})
-    if not existing:
-        raise HTTPException(status_code=404, detail="Tool not found")
-    
-    update_data = data.model_dump()
-    await db.tools.update_one({"id": tool_id}, {"$set": update_data})
-    updated = await db.tools.find_one({"id": tool_id}, {"_id": 0})
-    return updated
-
-@api_router.delete("/tools/{tool_id}")
-async def delete_tool(tool_id: str, user=Depends(get_current_user)):
-    result = await db.tools.delete_one({"id": tool_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Tool not found")
-    return {"message": "Tool deleted"}
-
-# ==================== VEHICLES ROUTES ====================
-@api_router.get("/vehicles", response_model=List[Vehicle])
-async def get_vehicles(user=Depends(get_current_user)):
-    items = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
-    return items
-
-@api_router.post("/vehicles", response_model=Vehicle)
-async def create_vehicle(data: VehicleCreate, user=Depends(get_current_user)):
-    vehicle = Vehicle(**data.model_dump())
-    doc = vehicle.model_dump()
-    await db.vehicles.insert_one(doc)
-    return vehicle
-
-@api_router.put("/vehicles/{vehicle_id}", response_model=Vehicle)
-async def update_vehicle(vehicle_id: str, data: VehicleCreate, user=Depends(get_current_user)):
-    existing = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
-    if not existing:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-    
-    update_data = data.model_dump()
-    await db.vehicles.update_one({"id": vehicle_id}, {"$set": update_data})
-    updated = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
-    return updated
-
-@api_router.delete("/vehicles/{vehicle_id}")
-async def delete_vehicle(vehicle_id: str, user=Depends(get_current_user)):
-    result = await db.vehicles.delete_one({"id": vehicle_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-    return {"message": "Vehicle deleted"}
-
-# ==================== MATERIALS ROUTES ====================
-@api_router.get("/materials", response_model=List[Material])
-async def get_materials(user=Depends(get_current_user)):
-    items = await db.materials.find({}, {"_id": 0}).to_list(1000)
-    return items
-
-@api_router.post("/materials", response_model=Material)
+@api_router.post("/materiais", response_model=Material)
 async def create_material(data: MaterialCreate, user=Depends(get_current_user)):
+    existing = await db.materiais.find_one({"codigo": data.codigo}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Código já existe")
+    
     material = Material(**data.model_dump())
     doc = material.model_dump()
-    await db.materials.insert_one(doc)
+    await db.materiais.insert_one(doc)
     return material
 
-@api_router.put("/materials/{material_id}", response_model=Material)
+@api_router.put("/materiais/{material_id}", response_model=Material)
 async def update_material(material_id: str, data: MaterialCreate, user=Depends(get_current_user)):
-    existing = await db.materials.find_one({"id": material_id}, {"_id": 0})
+    existing = await db.materiais.find_one({"id": material_id}, {"_id": 0})
     if not existing:
-        raise HTTPException(status_code=404, detail="Material not found")
+        raise HTTPException(status_code=404, detail="Material não encontrado")
     
     update_data = data.model_dump()
-    await db.materials.update_one({"id": material_id}, {"$set": update_data})
-    updated = await db.materials.find_one({"id": material_id}, {"_id": 0})
+    await db.materiais.update_one({"id": material_id}, {"$set": update_data})
+    updated = await db.materiais.find_one({"id": material_id}, {"_id": 0})
     return updated
 
-@api_router.delete("/materials/{material_id}")
+@api_router.delete("/materiais/{material_id}")
 async def delete_material(material_id: str, user=Depends(get_current_user)):
-    result = await db.materials.delete_one({"id": material_id})
+    result = await db.materiais.delete_one({"id": material_id})
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Material not found")
-    return {"message": "Material deleted"}
+        raise HTTPException(status_code=404, detail="Material não encontrado")
+    return {"message": "Material eliminado"}
 
-# ==================== OBRAS ROUTES ====================
+# ==================== LOCAL ROUTES ====================
+@api_router.get("/locais", response_model=List[Local])
+async def get_locais(user=Depends(get_current_user)):
+    items = await db.locais.find({}, {"_id": 0}).to_list(1000)
+    return items
+
+@api_router.post("/locais", response_model=Local)
+async def create_local(data: LocalCreate, user=Depends(get_current_user)):
+    existing = await db.locais.find_one({"codigo": data.codigo}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Código já existe")
+    
+    local = Local(**data.model_dump())
+    doc = local.model_dump()
+    await db.locais.insert_one(doc)
+    return local
+
+@api_router.put("/locais/{local_id}", response_model=Local)
+async def update_local(local_id: str, data: LocalCreate, user=Depends(get_current_user)):
+    existing = await db.locais.find_one({"id": local_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Local não encontrado")
+    
+    update_data = data.model_dump()
+    await db.locais.update_one({"id": local_id}, {"$set": update_data})
+    updated = await db.locais.find_one({"id": local_id}, {"_id": 0})
+    return updated
+
+@api_router.delete("/locais/{local_id}")
+async def delete_local(local_id: str, user=Depends(get_current_user)):
+    result = await db.locais.delete_one({"id": local_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Local não encontrado")
+    return {"message": "Local eliminado"}
+
+# ==================== OBRA ROUTES ====================
 @api_router.get("/obras", response_model=List[Obra])
 async def get_obras(user=Depends(get_current_user)):
     items = await db.obras.find({}, {"_id": 0}).to_list(1000)
@@ -359,6 +399,10 @@ async def get_obras(user=Depends(get_current_user)):
 
 @api_router.post("/obras", response_model=Obra)
 async def create_obra(data: ObraCreate, user=Depends(get_current_user)):
+    existing = await db.obras.find_one({"codigo": data.codigo}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Código já existe")
+    
     obra = Obra(**data.model_dump())
     doc = obra.model_dump()
     await db.obras.insert_one(doc)
@@ -368,7 +412,7 @@ async def create_obra(data: ObraCreate, user=Depends(get_current_user)):
 async def update_obra(obra_id: str, data: ObraCreate, user=Depends(get_current_user)):
     existing = await db.obras.find_one({"id": obra_id}, {"_id": 0})
     if not existing:
-        raise HTTPException(status_code=404, detail="Obra not found")
+        raise HTTPException(status_code=404, detail="Obra não encontrada")
     
     update_data = data.model_dump()
     await db.obras.update_one({"id": obra_id}, {"$set": update_data})
@@ -379,152 +423,174 @@ async def update_obra(obra_id: str, data: ObraCreate, user=Depends(get_current_u
 async def delete_obra(obra_id: str, user=Depends(get_current_user)):
     result = await db.obras.delete_one({"id": obra_id})
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Obra not found")
-    # Unassign all resources from this obra
-    await db.machines.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None, "status": "available"}})
-    await db.equipment.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None, "status": "available"}})
-    await db.tools.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None, "status": "available"}})
-    await db.vehicles.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None, "status": "available"}})
-    await db.materials.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None, "status": "available"}})
-    return {"message": "Obra deleted"}
+        raise HTTPException(status_code=404, detail="Obra não encontrada")
+    # Remove local associations
+    await db.locais.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None}})
+    return {"message": "Obra eliminada"}
 
-@api_router.get("/obras/{obra_id}/resources")
-async def get_obra_resources(obra_id: str, user=Depends(get_current_user)):
+@api_router.get("/obras/{obra_id}/recursos")
+async def get_obra_recursos(obra_id: str, user=Depends(get_current_user)):
     obra = await db.obras.find_one({"id": obra_id}, {"_id": 0})
     if not obra:
-        raise HTTPException(status_code=404, detail="Obra not found")
+        raise HTTPException(status_code=404, detail="Obra não encontrada")
     
-    machines = await db.machines.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
-    equipment = await db.equipment.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
-    tools = await db.tools.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
-    vehicles = await db.vehicles.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
-    materials = await db.materials.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
+    # Get locais associated with this obra
+    locais = await db.locais.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
+    local_ids = [l["id"] for l in locais]
+    
+    equipamentos = await db.equipamentos.find({"local_id": {"$in": local_ids}}, {"_id": 0}).to_list(1000)
+    viaturas = await db.viaturas.find({"local_id": {"$in": local_ids}}, {"_id": 0}).to_list(1000)
+    materiais = await db.materiais.find({"local_id": {"$in": local_ids}}, {"_id": 0}).to_list(1000)
     
     return {
         "obra": obra,
-        "machines": machines,
-        "equipment": equipment,
-        "tools": tools,
-        "vehicles": vehicles,
-        "materials": materials
+        "locais": locais,
+        "equipamentos": equipamentos,
+        "viaturas": viaturas,
+        "materiais": materiais
     }
 
-# ==================== ASSIGNMENTS ROUTES ====================
-@api_router.post("/assignments")
-async def assign_resource(data: AssignmentCreate, user=Depends(get_current_user)):
-    obra = await db.obras.find_one({"id": data.obra_id}, {"_id": 0})
-    if not obra:
-        raise HTTPException(status_code=404, detail="Obra not found")
-    
-    collection_map = {
-        "machine": db.machines,
-        "equipment": db.equipment,
-        "tool": db.tools,
-        "vehicle": db.vehicles,
-        "material": db.materials
-    }
-    
-    collection = collection_map.get(data.resource_type)
-    if collection is None:
-        raise HTTPException(status_code=400, detail="Invalid resource type")
-    
-    resource = await collection.find_one({"id": data.resource_id}, {"_id": 0})
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-    
-    await collection.update_one(
-        {"id": data.resource_id},
-        {"$set": {"obra_id": data.obra_id, "status": "in_use"}}
-    )
-    
-    return {"message": "Resource assigned successfully"}
+# ==================== MOVIMENTO ATIVO ROUTES ====================
+@api_router.get("/movimentos/ativos", response_model=List[MovimentoAtivo])
+async def get_movimentos_ativos(user=Depends(get_current_user)):
+    items = await db.movimentos_ativos.find({}, {"_id": 0}).to_list(1000)
+    return items
 
-@api_router.post("/assignments/unassign")
-async def unassign_resource(data: AssignmentCreate, user=Depends(get_current_user)):
-    collection_map = {
-        "machine": db.machines,
-        "equipment": db.equipment,
-        "tool": db.tools,
-        "vehicle": db.vehicles,
-        "material": db.materials
-    }
+@api_router.post("/movimentos/ativos", response_model=MovimentoAtivo)
+async def create_movimento_ativo(data: MovimentoAtivoCreate, user=Depends(get_current_user)):
+    movimento = MovimentoAtivo(**data.model_dump())
+    doc = movimento.model_dump()
+    await db.movimentos_ativos.insert_one(doc)
     
-    collection = collection_map.get(data.resource_type)
-    if collection is None:
-        raise HTTPException(status_code=400, detail="Invalid resource type")
+    # Update equipamento local
+    if data.destino_id:
+        await db.equipamentos.update_one(
+            {"id": data.ativo_id},
+            {"$set": {"local_id": data.destino_id}}
+        )
     
-    await collection.update_one(
-        {"id": data.resource_id},
-        {"$set": {"obra_id": None, "status": "available"}}
-    )
-    
-    return {"message": "Resource unassigned successfully"}
+    return movimento
 
-# ==================== SUMMARY ROUTES ====================
+# ==================== MOVIMENTO STOCK ROUTES ====================
+@api_router.get("/movimentos/stock", response_model=List[MovimentoStock])
+async def get_movimentos_stock(user=Depends(get_current_user)):
+    items = await db.movimentos_stock.find({}, {"_id": 0}).to_list(1000)
+    return items
+
+@api_router.post("/movimentos/stock", response_model=MovimentoStock)
+async def create_movimento_stock(data: MovimentoStockCreate, user=Depends(get_current_user)):
+    movimento = MovimentoStock(**data.model_dump())
+    doc = movimento.model_dump()
+    await db.movimentos_stock.insert_one(doc)
+    
+    # Update material stock
+    material = await db.materiais.find_one({"id": data.material_id}, {"_id": 0})
+    if material:
+        new_stock = material.get("stock_atual", 0)
+        if data.tipo_movimento == "Entrada":
+            new_stock += data.quantidade
+        else:  # Saida
+            new_stock -= data.quantidade
+        
+        await db.materiais.update_one(
+            {"id": data.material_id},
+            {"$set": {"stock_atual": new_stock}}
+        )
+    
+    return movimento
+
+# ==================== MOVIMENTO VIATURA ROUTES ====================
+@api_router.get("/movimentos/viaturas", response_model=List[MovimentoViatura])
+async def get_movimentos_viaturas(user=Depends(get_current_user)):
+    items = await db.movimentos_viaturas.find({}, {"_id": 0}).to_list(1000)
+    return items
+
+@api_router.post("/movimentos/viaturas", response_model=MovimentoViatura)
+async def create_movimento_viatura(data: MovimentoViaturaCreate, user=Depends(get_current_user)):
+    movimento = MovimentoViatura(**data.model_dump())
+    doc = movimento.model_dump()
+    await db.movimentos_viaturas.insert_one(doc)
+    return movimento
+
+# ==================== SUMMARY ROUTE ====================
 @api_router.get("/summary")
 async def get_summary(user=Depends(get_current_user)):
-    machines = await db.machines.find({}, {"_id": 0}).to_list(1000)
-    equipment = await db.equipment.find({}, {"_id": 0}).to_list(1000)
-    tools = await db.tools.find({}, {"_id": 0}).to_list(1000)
-    vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
-    materials = await db.materials.find({}, {"_id": 0}).to_list(1000)
+    equipamentos = await db.equipamentos.find({}, {"_id": 0}).to_list(1000)
+    viaturas = await db.viaturas.find({}, {"_id": 0}).to_list(1000)
+    materiais = await db.materiais.find({}, {"_id": 0}).to_list(1000)
+    locais = await db.locais.find({}, {"_id": 0}).to_list(1000)
     obras = await db.obras.find({}, {"_id": 0}).to_list(1000)
     
-    def count_by_status(items):
-        return {
-            "total": len(items),
-            "available": len([i for i in items if i.get("status") == "available"]),
-            "in_use": len([i for i in items if i.get("status") == "in_use"]),
-            "maintenance": len([i for i in items if i.get("status") == "maintenance"]),
-            "broken": len([i for i in items if i.get("status") == "broken"])
-        }
-    
-    # Maintenance alerts
-    today = datetime.now(timezone.utc).date()
+    # Alerts
     alerts = []
+    today = datetime.now(timezone.utc).date()
     
-    for m in machines:
-        if m.get("next_maintenance"):
+    # Vistoria alerts for viaturas
+    for v in viaturas:
+        if v.get("data_vistoria"):
             try:
-                maint_date = datetime.fromisoformat(m["next_maintenance"].replace("Z", "+00:00")).date()
-                days_until = (maint_date - today).days
-                if days_until <= 7:
+                vistoria_date = datetime.fromisoformat(v["data_vistoria"].replace("Z", "+00:00")).date()
+                days_until = (vistoria_date - today).days
+                if days_until <= 30:
                     alerts.append({
-                        "type": "machine",
-                        "name": m["name"],
-                        "message": f"Manutenção em {days_until} dias" if days_until >= 0 else "Manutenção atrasada",
+                        "type": "vistoria",
+                        "item": f"{v['marca']} {v['modelo']} ({v['matricula']})",
+                        "message": f"Vistoria em {days_until} dias" if days_until >= 0 else "Vistoria expirada",
+                        "urgent": days_until < 0
+                    })
+            except:
+                pass
+        
+        if v.get("data_seguro"):
+            try:
+                seguro_date = datetime.fromisoformat(v["data_seguro"].replace("Z", "+00:00")).date()
+                days_until = (seguro_date - today).days
+                if days_until <= 30:
+                    alerts.append({
+                        "type": "seguro",
+                        "item": f"{v['marca']} {v['modelo']} ({v['matricula']})",
+                        "message": f"Seguro expira em {days_until} dias" if days_until >= 0 else "Seguro expirado",
                         "urgent": days_until < 0
                     })
             except:
                 pass
     
-    for v in vehicles:
-        if v.get("next_maintenance"):
-            try:
-                maint_date = datetime.fromisoformat(v["next_maintenance"].replace("Z", "+00:00")).date()
-                days_until = (maint_date - today).days
-                if days_until <= 7:
-                    alerts.append({
-                        "type": "vehicle",
-                        "name": v["name"],
-                        "plate": v.get("plate", ""),
-                        "message": f"Manutenção em {days_until} dias" if days_until >= 0 else "Manutenção atrasada",
-                        "urgent": days_until < 0
-                    })
-            except:
-                pass
+    # Stock alerts
+    for m in materiais:
+        if m.get("stock_atual", 0) <= m.get("stock_minimo", 0) and m.get("stock_minimo", 0) > 0:
+            alerts.append({
+                "type": "stock",
+                "item": f"{m['codigo']} - {m['descricao']}",
+                "message": f"Stock baixo: {m.get('stock_atual', 0)} {m.get('unidade', 'un')} (mín: {m.get('stock_minimo', 0)})",
+                "urgent": m.get("stock_atual", 0) == 0
+            })
     
     return {
-        "machines": count_by_status(machines),
-        "equipment": count_by_status(equipment),
-        "tools": count_by_status(tools),
-        "vehicles": count_by_status(vehicles),
-        "materials": {"total": len(materials), "total_quantity": sum(m.get("quantity", 0) for m in materials)},
+        "equipamentos": {
+            "total": len(equipamentos),
+            "ativos": len([e for e in equipamentos if e.get("ativo", True)]),
+            "inativos": len([e for e in equipamentos if not e.get("ativo", True)])
+        },
+        "viaturas": {
+            "total": len(viaturas),
+            "ativas": len([v for v in viaturas if v.get("ativa", True)]),
+            "inativas": len([v for v in viaturas if not v.get("ativa", True)])
+        },
+        "materiais": {
+            "total": len(materiais),
+            "stock_total": sum(m.get("stock_atual", 0) for m in materiais)
+        },
+        "locais": {
+            "total": len(locais),
+            "armazens": len([l for l in locais if l.get("tipo") == "ARM"]),
+            "oficinas": len([l for l in locais if l.get("tipo") == "OFI"]),
+            "obras": len([l for l in locais if l.get("tipo") == "OBR"])
+        },
         "obras": {
             "total": len(obras),
-            "active": len([o for o in obras if o.get("status") == "active"]),
-            "completed": len([o for o in obras if o.get("status") == "completed"]),
-            "paused": len([o for o in obras if o.get("status") == "paused"])
+            "ativas": len([o for o in obras if o.get("estado") == "Ativa"]),
+            "concluidas": len([o for o in obras if o.get("estado") == "Concluida"]),
+            "pausadas": len([o for o in obras if o.get("estado") == "Pausada"])
         },
         "alerts": alerts
     }
@@ -532,11 +598,9 @@ async def get_summary(user=Depends(get_current_user)):
 # ==================== EXPORT ROUTES ====================
 @api_router.get("/export/pdf")
 async def export_pdf(user=Depends(get_current_user)):
-    machines = await db.machines.find({}, {"_id": 0}).to_list(1000)
-    equipment = await db.equipment.find({}, {"_id": 0}).to_list(1000)
-    tools = await db.tools.find({}, {"_id": 0}).to_list(1000)
-    vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
-    materials = await db.materials.find({}, {"_id": 0}).to_list(1000)
+    equipamentos = await db.equipamentos.find({}, {"_id": 0}).to_list(1000)
+    viaturas = await db.viaturas.find({}, {"_id": 0}).to_list(1000)
+    materiais = await db.materiais.find({}, {"_id": 0}).to_list(1000)
     obras = await db.obras.find({}, {"_id": 0}).to_list(1000)
     
     buffer = BytesIO()
@@ -548,20 +612,12 @@ async def export_pdf(user=Depends(get_current_user)):
     elements.append(Paragraph(f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
     elements.append(Spacer(1, 20))
     
-    # Summary table
     summary_data = [
-        ["Categoria", "Total", "Disponível", "Em Uso", "Manutenção"],
-        ["Máquinas", len(machines), len([i for i in machines if i.get("status") == "available"]), 
-         len([i for i in machines if i.get("status") == "in_use"]), len([i for i in machines if i.get("status") == "maintenance"])],
-        ["Equipamentos", len(equipment), len([i for i in equipment if i.get("status") == "available"]), 
-         len([i for i in equipment if i.get("status") == "in_use"]), len([i for i in equipment if i.get("status") == "maintenance"])],
-        ["Ferramentas", len(tools), len([i for i in tools if i.get("status") == "available"]), 
-         len([i for i in tools if i.get("status") == "in_use"]), len([i for i in tools if i.get("status") == "maintenance"])],
-        ["Viaturas", len(vehicles), len([i for i in vehicles if i.get("status") == "available"]), 
-         len([i for i in vehicles if i.get("status") == "in_use"]), len([i for i in vehicles if i.get("status") == "maintenance"])],
-        ["Materiais", len(materials), "-", "-", "-"],
-        ["Obras", len(obras), len([o for o in obras if o.get("status") == "active"]), 
-         len([o for o in obras if o.get("status") == "completed"]), len([o for o in obras if o.get("status") == "paused"])]
+        ["Categoria", "Total", "Ativos", "Inativos"],
+        ["Equipamentos", len(equipamentos), len([e for e in equipamentos if e.get("ativo")]), len([e for e in equipamentos if not e.get("ativo")])],
+        ["Viaturas", len(viaturas), len([v for v in viaturas if v.get("ativa")]), len([v for v in viaturas if not v.get("ativa")])],
+        ["Materiais", len(materiais), "-", "-"],
+        ["Obras", len(obras), len([o for o in obras if o.get("estado") == "Ativa"]), len([o for o in obras if o.get("estado") != "Ativa"])]
     ]
     
     table = Table(summary_data)
@@ -588,51 +644,49 @@ async def export_pdf(user=Depends(get_current_user)):
 
 @api_router.get("/export/excel")
 async def export_excel(user=Depends(get_current_user)):
-    machines = await db.machines.find({}, {"_id": 0}).to_list(1000)
-    equipment = await db.equipment.find({}, {"_id": 0}).to_list(1000)
-    tools = await db.tools.find({}, {"_id": 0}).to_list(1000)
-    vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
-    materials = await db.materials.find({}, {"_id": 0}).to_list(1000)
+    equipamentos = await db.equipamentos.find({}, {"_id": 0}).to_list(1000)
+    viaturas = await db.viaturas.find({}, {"_id": 0}).to_list(1000)
+    materiais = await db.materiais.find({}, {"_id": 0}).to_list(1000)
+    locais = await db.locais.find({}, {"_id": 0}).to_list(1000)
     obras = await db.obras.find({}, {"_id": 0}).to_list(1000)
     
     wb = Workbook()
     
-    # Machines sheet
+    # Equipamentos sheet
     ws = wb.active
-    ws.title = "Máquinas"
-    ws.append(["Nome", "Quantidade", "Localização", "Estado", "Próxima Manutenção"])
-    for m in machines:
-        ws.append([m.get("name", ""), m.get("quantity", 0), m.get("location", ""), m.get("status", ""), m.get("next_maintenance", "")])
+    ws.title = "Equipamentos"
+    ws.append(["Código", "Descrição", "Marca", "Modelo", "Categoria", "Nº Série", "Estado Conservação", "Responsável", "Ativo"])
+    for e in equipamentos:
+        ws.append([e.get("codigo", ""), e.get("descricao", ""), e.get("marca", ""), e.get("modelo", ""), 
+                   e.get("categoria", ""), e.get("numero_serie", ""), e.get("estado_conservacao", ""),
+                   e.get("responsavel", ""), "Sim" if e.get("ativo") else "Não"])
     
-    # Equipment sheet
-    ws = wb.create_sheet("Equipamentos")
-    ws.append(["Nome", "Quantidade", "Localização", "Estado"])
-    for e in equipment:
-        ws.append([e.get("name", ""), e.get("quantity", 0), e.get("location", ""), e.get("status", "")])
-    
-    # Tools sheet
-    ws = wb.create_sheet("Ferramentas")
-    ws.append(["Nome", "Quantidade", "Localização", "Estado"])
-    for t in tools:
-        ws.append([t.get("name", ""), t.get("quantity", 0), t.get("location", ""), t.get("status", "")])
-    
-    # Vehicles sheet
+    # Viaturas sheet
     ws = wb.create_sheet("Viaturas")
-    ws.append(["Nome", "Matrícula", "Quantidade", "Localização", "Estado", "Próxima Manutenção"])
-    for v in vehicles:
-        ws.append([v.get("name", ""), v.get("plate", ""), v.get("quantity", 0), v.get("location", ""), v.get("status", ""), v.get("next_maintenance", "")])
+    ws.append(["Matrícula", "Marca", "Modelo", "Combustível", "Data Vistoria", "Data Seguro", "Apólice", "Ativa", "Observações"])
+    for v in viaturas:
+        ws.append([v.get("matricula", ""), v.get("marca", ""), v.get("modelo", ""), v.get("combustivel", ""),
+                   v.get("data_vistoria", ""), v.get("data_seguro", ""), v.get("apolice_seguro", ""),
+                   "Sim" if v.get("ativa") else "Não", v.get("observacoes", "")])
     
-    # Materials sheet
+    # Materiais sheet
     ws = wb.create_sheet("Materiais")
-    ws.append(["Nome", "Quantidade", "Unidade", "Localização", "Estado"])
-    for m in materials:
-        ws.append([m.get("name", ""), m.get("quantity", 0), m.get("unit", ""), m.get("location", ""), m.get("status", "")])
+    ws.append(["Código", "Descrição", "Unidade", "Stock Atual", "Stock Mínimo", "Ativo"])
+    for m in materiais:
+        ws.append([m.get("codigo", ""), m.get("descricao", ""), m.get("unidade", ""),
+                   m.get("stock_atual", 0), m.get("stock_minimo", 0), "Sim" if m.get("ativo") else "Não"])
+    
+    # Locais sheet
+    ws = wb.create_sheet("Locais")
+    ws.append(["Código", "Nome", "Tipo", "Ativo"])
+    for l in locais:
+        ws.append([l.get("codigo", ""), l.get("nome", ""), l.get("tipo", ""), "Sim" if l.get("ativo") else "Não"])
     
     # Obras sheet
     ws = wb.create_sheet("Obras")
-    ws.append(["Nome", "Endereço", "Cliente", "Estado"])
+    ws.append(["Código", "Nome", "Endereço", "Cliente", "Estado"])
     for o in obras:
-        ws.append([o.get("name", ""), o.get("address", ""), o.get("client_name", ""), o.get("status", "")])
+        ws.append([o.get("codigo", ""), o.get("nome", ""), o.get("endereco", ""), o.get("cliente", ""), o.get("estado", "")])
     
     buffer = BytesIO()
     wb.save(buffer)
