@@ -116,157 +116,135 @@ class WarehouseAPITester:
             self.log_result("Register new user", False, str(response))
             return False
 
-    # ==================== MACHINES TESTS ====================
-    def test_machines_crud(self):
-        """Test complete CRUD operations for machines"""
-        # CREATE
-        machine_data = {
-            "name": "Escavadora Test",
-            "quantity": 2,
-            "location": "Armazém A",
-            "status": "available",
-            "next_maintenance": (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"),
-            "maintenance_interval_days": 90
+    # ==================== LOCAIS TESTS ====================
+    def test_locais_crud(self):
+        """Test complete CRUD operations for locais"""
+        local_data = {
+            "codigo": "TEST-ARM-001",
+            "nome": "Armazém Teste",
+            "tipo": "ARM",
+            "ativo": True
         }
         
-        success, response = self.make_request('POST', 'machines', data=machine_data, expected_status=200)
+        success, response = self.make_request('POST', 'locais', data=local_data, expected_status=200)
         if success and 'id' in response:
-            machine_id = response['id']
-            self.created_resources['machines'].append(machine_id)
-            self.log_result("Create machine", True)
+            local_id = response['id']
+            self.created_resources['locais'].append(local_id)
+            self.log_result("Create local", True)
         else:
-            self.log_result("Create machine", False, str(response))
+            self.log_result("Create local", False, str(response))
             return False
 
         # READ ALL
-        success, response = self.make_request('GET', 'machines')
+        success, response = self.make_request('GET', 'locais')
         if success and isinstance(response, list):
-            self.log_result("Get all machines", True)
+            self.log_result("Get all locais", True)
         else:
-            self.log_result("Get all machines", False, str(response))
+            self.log_result("Get all locais", False, str(response))
 
         # UPDATE
-        update_data = machine_data.copy()
-        update_data["name"] = "Escavadora Test Updated"
-        update_data["status"] = "maintenance"
+        update_data = local_data.copy()
+        update_data["nome"] = "Armazém Teste Atualizado"
         
-        success, response = self.make_request('PUT', f'machines/{machine_id}', data=update_data)
-        if success and response.get('name') == "Escavadora Test Updated":
-            self.log_result("Update machine", True)
+        success, response = self.make_request('PUT', f'locais/{local_id}', data=update_data)
+        if success and response.get('nome') == "Armazém Teste Atualizado":
+            self.log_result("Update local", True)
         else:
-            self.log_result("Update machine", False, str(response))
+            self.log_result("Update local", False, str(response))
 
         return True
 
-    # ==================== EQUIPMENT TESTS ====================
-    def test_equipment_crud(self):
-        """Test complete CRUD operations for equipment"""
-        equipment_data = {
-            "name": "Berbequim Test",
-            "quantity": 5,
-            "location": "Armazém B",
-            "status": "available"
+    # ==================== EQUIPAMENTOS TESTS ====================
+    def test_equipamentos_crud(self):
+        """Test complete CRUD operations for equipamentos"""
+        equipamento_data = {
+            "codigo": "EQ-001",
+            "descricao": "Aparafusadora Teste",
+            "marca": "Bosch",
+            "modelo": "GSR 18V",
+            "categoria": "Ferramenta Elétrica",
+            "numero_serie": "TEST123456",
+            "responsavel": "João Silva",
+            "estado_conservacao": "Bom",
+            "ativo": True
         }
         
-        success, response = self.make_request('POST', 'equipment', data=equipment_data)
+        success, response = self.make_request('POST', 'equipamentos', data=equipamento_data)
         if success and 'id' in response:
-            equipment_id = response['id']
-            self.created_resources['equipment'].append(equipment_id)
-            self.log_result("Create equipment", True)
+            equipamento_id = response['id']
+            self.created_resources['equipamentos'].append(equipamento_id)
+            self.log_result("Create equipamento", True)
         else:
-            self.log_result("Create equipment", False, str(response))
+            self.log_result("Create equipamento", False, str(response))
             return False
 
-        success, response = self.make_request('GET', 'equipment')
+        success, response = self.make_request('GET', 'equipamentos')
         if success and isinstance(response, list):
-            self.log_result("Get all equipment", True)
+            self.log_result("Get all equipamentos", True)
         else:
-            self.log_result("Get all equipment", False, str(response))
+            self.log_result("Get all equipamentos", False, str(response))
 
         return True
 
-    # ==================== TOOLS TESTS ====================
-    def test_tools_crud(self):
-        """Test complete CRUD operations for tools"""
-        tool_data = {
-            "name": "Martelo Test",
-            "quantity": 10,
-            "location": "Armazém C",
-            "status": "available"
+    # ==================== VIATURAS TESTS ====================
+    def test_viaturas_crud(self):
+        """Test complete CRUD operations for viaturas"""
+        viatura_data = {
+            "matricula": "AA-11-BB",
+            "marca": "Ford",
+            "modelo": "Transit",
+            "combustivel": "Gasoleo",
+            "data_vistoria": "2024-12-31",
+            "data_seguro": "2024-12-31",
+            "documento_unico": "DOC123456",
+            "apolice_seguro": "AP789012",
+            "observacoes": "Viatura de teste",
+            "ativa": True
         }
         
-        success, response = self.make_request('POST', 'tools', data=tool_data)
+        success, response = self.make_request('POST', 'viaturas', data=viatura_data)
         if success and 'id' in response:
-            tool_id = response['id']
-            self.created_resources['tools'].append(tool_id)
-            self.log_result("Create tool", True)
+            viatura_id = response['id']
+            self.created_resources['viaturas'].append(viatura_id)
+            self.log_result("Create viatura", True)
         else:
-            self.log_result("Create tool", False, str(response))
+            self.log_result("Create viatura", False, str(response))
             return False
 
-        success, response = self.make_request('GET', 'tools')
+        success, response = self.make_request('GET', 'viaturas')
         if success and isinstance(response, list):
-            self.log_result("Get all tools", True)
+            self.log_result("Get all viaturas", True)
         else:
-            self.log_result("Get all tools", False, str(response))
+            self.log_result("Get all viaturas", False, str(response))
 
         return True
 
-    # ==================== VEHICLES TESTS ====================
-    def test_vehicles_crud(self):
-        """Test complete CRUD operations for vehicles"""
-        vehicle_data = {
-            "name": "Camião Test",
-            "quantity": 1,
-            "location": "Parque de Viaturas",
-            "status": "available",
-            "plate": "AA-00-BB",
-            "next_maintenance": (datetime.now() + timedelta(days=15)).strftime("%Y-%m-%d"),
-            "maintenance_interval_days": 30
-        }
-        
-        success, response = self.make_request('POST', 'vehicles', data=vehicle_data)
-        if success and 'id' in response:
-            vehicle_id = response['id']
-            self.created_resources['vehicles'].append(vehicle_id)
-            self.log_result("Create vehicle", True)
-        else:
-            self.log_result("Create vehicle", False, str(response))
-            return False
-
-        success, response = self.make_request('GET', 'vehicles')
-        if success and isinstance(response, list):
-            self.log_result("Get all vehicles", True)
-        else:
-            self.log_result("Get all vehicles", False, str(response))
-
-        return True
-
-    # ==================== MATERIALS TESTS ====================
-    def test_materials_crud(self):
-        """Test complete CRUD operations for materials"""
+    # ==================== MATERIAIS TESTS ====================
+    def test_materiais_crud(self):
+        """Test complete CRUD operations for materiais"""
         material_data = {
-            "name": "Cimento Test",
-            "quantity": 100,
-            "location": "Armazém D",
-            "status": "available",
-            "unit": "sacos"
+            "codigo": "MAT-001",
+            "descricao": "Cimento Portland",
+            "unidade": "saco",
+            "stock_atual": 100,
+            "stock_minimo": 20,
+            "ativo": True
         }
         
-        success, response = self.make_request('POST', 'materials', data=material_data)
+        success, response = self.make_request('POST', 'materiais', data=material_data)
         if success and 'id' in response:
             material_id = response['id']
-            self.created_resources['materials'].append(material_id)
+            self.created_resources['materiais'].append(material_id)
             self.log_result("Create material", True)
         else:
             self.log_result("Create material", False, str(response))
             return False
 
-        success, response = self.make_request('GET', 'materials')
+        success, response = self.make_request('GET', 'materiais')
         if success and isinstance(response, list):
-            self.log_result("Get all materials", True)
+            self.log_result("Get all materiais", True)
         else:
-            self.log_result("Get all materials", False, str(response))
+            self.log_result("Get all materiais", False, str(response))
 
         return True
 
@@ -274,10 +252,11 @@ class WarehouseAPITester:
     def test_obras_crud(self):
         """Test complete CRUD operations for obras"""
         obra_data = {
-            "name": "Obra Test Lisboa",
-            "address": "Rua Test, Lisboa",
-            "client_name": "Cliente Test",
-            "status": "active"
+            "codigo": "OBR-001",
+            "nome": "Obra Teste Lisboa",
+            "endereco": "Rua Test, Lisboa",
+            "cliente": "Cliente Test",
+            "estado": "Ativa"
         }
         
         success, response = self.make_request('POST', 'obras', data=obra_data)
