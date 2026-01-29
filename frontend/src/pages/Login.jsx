@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/App";
 import { toast } from "sonner";
-import { Building2, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const LOGO_URL = "https://customer-assets.emergentagent.com/job_construction-hub-119/artifacts/t5nlg1av_logo_jose_firmino_word-removebg-preview.png";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,23 +49,27 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center gap-3 mb-4">
-            <Building2 className="h-12 w-12 text-amber-500" />
-            <h1 className="text-3xl font-black text-white tracking-tight">ARMAZÉM</h1>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src={LOGO_URL} 
+              alt="José Firmino" 
+              className="h-16 w-auto object-contain"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
           </div>
-          <p className="text-slate-400">Gestão de Armazém de Construção Civil</p>
+          <p className="text-neutral-400">Gestão de Armazém de Construção Civil</p>
         </div>
 
-        <Card className="border-slate-200 rounded-sm">
+        <Card className="bg-neutral-900 border-neutral-800">
           <Tabs defaultValue="login" className="w-full">
             <CardHeader className="pb-0">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login" data-testid="login-tab">Entrar</TabsTrigger>
-                <TabsTrigger value="register" data-testid="register-tab">Registar</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-neutral-800">
+                <TabsTrigger value="login" data-testid="login-tab" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">Entrar</TabsTrigger>
+                <TabsTrigger value="register" data-testid="register-tab" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">Registar</TabsTrigger>
               </TabsList>
             </CardHeader>
 
@@ -71,7 +77,7 @@ export default function Login() {
               <TabsContent value="login" className="mt-0">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email" className="text-neutral-300">Email</Label>
                     <Input
                       id="login-email"
                       type="email"
@@ -80,11 +86,11 @@ export default function Login() {
                       onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                       required
                       data-testid="login-email-input"
-                      className="rounded-sm"
+                      className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Palavra-passe</Label>
+                    <Label htmlFor="login-password" className="text-neutral-300">Palavra-passe</Label>
                     <div className="relative">
                       <Input
                         id="login-password"
@@ -94,12 +100,12 @@ export default function Login() {
                         onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                         required
                         data-testid="login-password-input"
-                        className="rounded-sm pr-10"
+                        className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 pr-10"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -107,7 +113,7 @@ export default function Login() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full btn-primary"
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-black font-semibold"
                     disabled={isLoading}
                     data-testid="login-submit-btn"
                   >
@@ -119,7 +125,7 @@ export default function Login() {
               <TabsContent value="register" className="mt-0">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="register-name">Nome</Label>
+                    <Label htmlFor="register-name" className="text-neutral-300">Nome</Label>
                     <Input
                       id="register-name"
                       type="text"
@@ -128,11 +134,11 @@ export default function Login() {
                       onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                       required
                       data-testid="register-name-input"
-                      className="rounded-sm"
+                      className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
+                    <Label htmlFor="register-email" className="text-neutral-300">Email</Label>
                     <Input
                       id="register-email"
                       type="email"
@@ -141,11 +147,11 @@ export default function Login() {
                       onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                       required
                       data-testid="register-email-input"
-                      className="rounded-sm"
+                      className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-password">Palavra-passe</Label>
+                    <Label htmlFor="register-password" className="text-neutral-300">Palavra-passe</Label>
                     <div className="relative">
                       <Input
                         id="register-password"
@@ -156,12 +162,12 @@ export default function Login() {
                         required
                         minLength={6}
                         data-testid="register-password-input"
-                        className="rounded-sm pr-10"
+                        className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 pr-10"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -169,7 +175,7 @@ export default function Login() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full btn-primary"
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-black font-semibold"
                     disabled={isLoading}
                     data-testid="register-submit-btn"
                   >
