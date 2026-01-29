@@ -10,7 +10,6 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
-import base64
 from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
@@ -19,7 +18,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 import resend
 
 ROOT_DIR = Path(__file__).parent
@@ -29,7 +28,6 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Resend configuration
 resend.api_key = os.environ.get('RESEND_API_KEY', '')
 ALERT_EMAIL = os.environ.get('ALERT_EMAIL', '')
 ALERT_DAYS_BEFORE = int(os.environ.get('ALERT_DAYS_BEFORE', 7))
@@ -42,7 +40,6 @@ security = HTTPBearer()
 JWT_SECRET = os.environ.get('JWT_SECRET', 'warehouse-construction-secret-key-2024')
 JWT_ALGORITHM = 'HS256'
 
-# Create uploads directory
 UPLOAD_DIR = ROOT_DIR / 'uploads'
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -80,10 +77,9 @@ class EquipamentoCreate(BaseModel):
     ativo: bool = True
     categoria: str = ""
     numero_serie: str = ""
-    responsavel: str = ""
     estado_conservacao: str = "Bom"
     foto: str = ""
-    local_id: Optional[str] = None
+    obra_id: Optional[str] = None
 
 class Equipamento(EquipamentoCreate):
     model_config = ConfigDict(extra="ignore")
@@ -104,7 +100,7 @@ class ViaturaCreate(BaseModel):
     documento_unico: str = ""
     apolice_seguro: str = ""
     observacoes: str = ""
-    local_id: Optional[str] = None
+    obra_id: Optional[str] = None
 
 class Viatura(ViaturaCreate):
     model_config = ConfigDict(extra="ignore")
@@ -119,22 +115,8 @@ class MaterialCreate(BaseModel):
     stock_atual: float = 0
     stock_minimo: float = 0
     ativo: bool = True
-    local_id: Optional[str] = None
 
 class Material(MaterialCreate):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-
-# ==================== LOCAL MODEL ====================
-class LocalCreate(BaseModel):
-    codigo: str
-    nome: str
-    tipo: str = "ARM"
-    obra_id: Optional[str] = None
-    ativo: bool = True
-
-class Local(LocalCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -152,21 +134,24 @@ class Obra(ObraCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-# ==================== MOVIMENTO MODELS ====================
-class MovimentoAtivoCreate(BaseModel):
-    ativo_id: str
-    tipo_ativo: str = "equipamento"
-    tipo_movimento: str
-    origem_id: Optional[str] = None
-    destino_id: Optional[str] = None
-    responsavel: str = ""
+# ==================== MOVIMENTO MODEL ====================
+class MovimentoCreate(BaseModel):
+    recurso_id: str
+    tipo_recurso: str  # equipamento, viatura
+    tipo_movimento: str  # Saida, Devolucao
+    obra_id: Optional[str] = None
+    responsavel_levantou: str = ""
+    responsavel_devolveu: str = ""
+    data_levantamento: Optional[str] = None
+    data_devolucao: Optional[str] = None
     observacoes: str = ""
 
-class MovimentoAtivo(MovimentoAtivoCreate):
+class Movimento(MovimentoCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    data_hora: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
+# ==================== MOVIMENTO STOCK MODEL ====================
 class MovimentoStockCreate(BaseModel):
     material_id: str
     tipo_movimento: str
@@ -182,6 +167,7 @@ class MovimentoStock(MovimentoStockCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     data_hora: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
+# ==================== MOVIMENTO VIATURA MODEL ====================
 class MovimentoViaturaCreate(BaseModel):
     viatura_id: str
     obra_id: Optional[str] = None
@@ -195,16 +181,6 @@ class MovimentoViatura(MovimentoViaturaCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-
-# ==================== EMAIL MODEL ====================
-class EmailAlert(BaseModel):
-    viatura_id: str
-    matricula: str
-    marca: str
-    modelo: str
-    tipo_alerta: str  # "vistoria" or "seguro"
-    data_expiracao: str
-    dias_restantes: int
 
 # ==================== AUTH FUNCTIONS ====================
 def hash_password(password: str) -> str:
@@ -233,132 +209,68 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Invalid token")
 
 # ==================== EMAIL FUNCTIONS ====================
-async def send_alert_email(alerts: List[EmailAlert]):
-    if not ALERT_EMAIL or not resend.api_key:
-        logger.warning("Email alerts not configured")
+async def send_alert_email(alerts):
+    if not ALERT_EMAIL or not resend.api_key or not alerts:
         return
     
-    if not alerts:
-        return
-    
-    # Build HTML email
     alerts_html = ""
     for alert in alerts:
-        tipo = "Vistoria" if alert.tipo_alerta == "vistoria" else "Seguro"
-        urgency_class = "color: #dc2626;" if alert.dias_restantes <= 0 else "color: #d97706;"
-        status = "EXPIRADO" if alert.dias_restantes <= 0 else f"Expira em {alert.dias_restantes} dias"
+        tipo = "Vistoria" if alert["tipo_alerta"] == "vistoria" else "Seguro"
+        urgency_class = "color: #dc2626;" if alert["dias_restantes"] <= 0 else "color: #f97316;"
+        status = "EXPIRADO" if alert["dias_restantes"] <= 0 else f"Expira em {alert['dias_restantes']} dias"
         
         alerts_html += f"""
         <tr>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{alert.matricula}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{alert.marca} {alert.modelo}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{tipo}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{alert.data_expiracao}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; {urgency_class} font-weight: bold;">{status}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #333;">{alert['matricula']}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #333;">{alert['marca']} {alert['modelo']}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #333;">{tipo}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #333;">{alert['data_expiracao']}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #333; {urgency_class} font-weight: bold;">{status}</td>
         </tr>
         """
     
     html_content = f"""
     <!DOCTYPE html>
     <html>
-    <head>
-        <meta charset="utf-8">
-    </head>
-    <body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f8fafc;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="background-color: #1e293b; color: white; padding: 20px; text-align: center;">
+    <body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #1a1a1a; color: #fff;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #2a2a2a; border-radius: 4px; overflow: hidden;">
+            <div style="background-color: #f97316; color: #000; padding: 20px; text-align: center;">
                 <h1 style="margin: 0; font-size: 24px;">⚠️ Alertas de Viaturas</h1>
-                <p style="margin: 10px 0 0 0; opacity: 0.8;">Gestão de Armazém - Construção Civil</p>
+                <p style="margin: 10px 0 0 0;">José Firmino - Construção Civil</p>
             </div>
             <div style="padding: 20px;">
-                <p style="color: #475569; margin-bottom: 20px;">
+                <p style="color: #ccc; margin-bottom: 20px;">
                     As seguintes viaturas têm vistorias ou seguros a expirar nos próximos {ALERT_DAYS_BEFORE} dias:
                 </p>
-                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #fff;">
                     <thead>
-                        <tr style="background-color: #f1f5f9;">
-                            <th style="padding: 12px; text-align: left; font-weight: 600;">Matrícula</th>
-                            <th style="padding: 12px; text-align: left; font-weight: 600;">Viatura</th>
-                            <th style="padding: 12px; text-align: left; font-weight: 600;">Tipo</th>
-                            <th style="padding: 12px; text-align: left; font-weight: 600;">Data</th>
-                            <th style="padding: 12px; text-align: left; font-weight: 600;">Estado</th>
+                        <tr style="background-color: #333;">
+                            <th style="padding: 12px; text-align: left;">Matrícula</th>
+                            <th style="padding: 12px; text-align: left;">Viatura</th>
+                            <th style="padding: 12px; text-align: left;">Tipo</th>
+                            <th style="padding: 12px; text-align: left;">Data</th>
+                            <th style="padding: 12px; text-align: left;">Estado</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {alerts_html}
-                    </tbody>
+                    <tbody>{alerts_html}</tbody>
                 </table>
-                <p style="color: #64748b; font-size: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                    Este email foi enviado automaticamente pelo sistema de Gestão de Armazém.
-                </p>
             </div>
         </div>
     </body>
     </html>
     """
     
-    params = {
-        "from": SENDER_EMAIL,
-        "to": [ALERT_EMAIL],
-        "subject": f"⚠️ Alertas de Viaturas - {len(alerts)} alerta(s)",
-        "html": html_content
-    }
-    
     try:
-        email = await asyncio.to_thread(resend.Emails.send, params)
-        logger.info(f"Alert email sent successfully: {email.get('id')}")
+        email = await asyncio.to_thread(resend.Emails.send, {
+            "from": SENDER_EMAIL,
+            "to": [ALERT_EMAIL],
+            "subject": f"⚠️ Alertas de Viaturas - {len(alerts)} alerta(s)",
+            "html": html_content
+        })
         return email
     except Exception as e:
         logger.error(f"Failed to send alert email: {str(e)}")
         raise
-
-async def check_and_send_alerts():
-    """Check for expiring vistorias and seguros and send email alerts"""
-    viaturas = await db.viaturas.find({"ativa": True}, {"_id": 0}).to_list(1000)
-    today = datetime.now(timezone.utc).date()
-    alerts = []
-    
-    for v in viaturas:
-        # Check vistoria
-        if v.get("data_vistoria"):
-            try:
-                vistoria_date = datetime.fromisoformat(v["data_vistoria"].replace("Z", "+00:00")).date()
-                days_until = (vistoria_date - today).days
-                if days_until <= ALERT_DAYS_BEFORE:
-                    alerts.append(EmailAlert(
-                        viatura_id=v["id"],
-                        matricula=v["matricula"],
-                        marca=v.get("marca", ""),
-                        modelo=v.get("modelo", ""),
-                        tipo_alerta="vistoria",
-                        data_expiracao=vistoria_date.strftime("%d/%m/%Y"),
-                        dias_restantes=days_until
-                    ))
-            except:
-                pass
-        
-        # Check seguro
-        if v.get("data_seguro"):
-            try:
-                seguro_date = datetime.fromisoformat(v["data_seguro"].replace("Z", "+00:00")).date()
-                days_until = (seguro_date - today).days
-                if days_until <= ALERT_DAYS_BEFORE:
-                    alerts.append(EmailAlert(
-                        viatura_id=v["id"],
-                        matricula=v["matricula"],
-                        marca=v.get("marca", ""),
-                        modelo=v.get("modelo", ""),
-                        tipo_alerta="seguro",
-                        data_expiracao=seguro_date.strftime("%d/%m/%Y"),
-                        dias_restantes=days_until
-                    ))
-            except:
-                pass
-    
-    if alerts:
-        await send_alert_email(alerts)
-    
-    return alerts
 
 # ==================== AUTH ROUTES ====================
 @api_router.post("/auth/register", response_model=TokenResponse)
@@ -378,10 +290,7 @@ async def register(data: UserCreate):
     await db.users.insert_one(user_doc)
     
     token = create_token(user_id)
-    return TokenResponse(
-        access_token=token,
-        user=UserResponse(id=user_id, name=data.name, email=data.email)
-    )
+    return TokenResponse(access_token=token, user=UserResponse(id=user_id, name=data.name, email=data.email))
 
 @api_router.post("/auth/login", response_model=TokenResponse)
 async def login(data: UserLogin):
@@ -390,10 +299,7 @@ async def login(data: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token = create_token(user["id"])
-    return TokenResponse(
-        access_token=token,
-        user=UserResponse(id=user["id"], name=user["name"], email=user["email"])
-    )
+    return TokenResponse(access_token=token, user=UserResponse(id=user["id"], name=user["name"], email=user["email"]))
 
 @api_router.get("/auth/me", response_model=UserResponse)
 async def get_me(user=Depends(get_current_user)):
@@ -402,73 +308,76 @@ async def get_me(user=Depends(get_current_user)):
 # ==================== UPLOAD ROUTES ====================
 @api_router.post("/upload")
 async def upload_file(file: UploadFile = File(...), user=Depends(get_current_user)):
-    """Upload an image file and return the URL"""
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Only image files are allowed")
     
-    # Generate unique filename
     ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     filename = f"{uuid.uuid4()}.{ext}"
     filepath = UPLOAD_DIR / filename
     
-    # Save file
     content = await file.read()
     with open(filepath, "wb") as f:
         f.write(content)
     
-    # Return URL (relative path that can be served)
     return {"url": f"/api/uploads/{filename}", "filename": filename}
 
 @api_router.get("/uploads/{filename}")
 async def get_upload(filename: str):
-    """Serve uploaded files"""
     filepath = UPLOAD_DIR / filename
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="File not found")
     
-    # Determine content type
     ext = filename.split(".")[-1].lower()
-    content_types = {
-        "jpg": "image/jpeg",
-        "jpeg": "image/jpeg",
-        "png": "image/png",
-        "gif": "image/gif",
-        "webp": "image/webp"
-    }
-    content_type = content_types.get(ext, "application/octet-stream")
+    content_types = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "gif": "image/gif", "webp": "image/webp"}
     
     with open(filepath, "rb") as f:
         content = f.read()
     
-    return Response(content=content, media_type=content_type)
+    return Response(content=content, media_type=content_types.get(ext, "application/octet-stream"))
 
 # ==================== EQUIPAMENTO ROUTES ====================
-@api_router.get("/equipamentos", response_model=List[Equipamento])
+@api_router.get("/equipamentos")
 async def get_equipamentos(user=Depends(get_current_user)):
     items = await db.equipamentos.find({}, {"_id": 0}).to_list(1000)
     return items
 
-@api_router.post("/equipamentos", response_model=Equipamento)
+@api_router.get("/equipamentos/{equipamento_id}")
+async def get_equipamento(equipamento_id: str, user=Depends(get_current_user)):
+    item = await db.equipamentos.find_one({"id": equipamento_id}, {"_id": 0})
+    if not item:
+        raise HTTPException(status_code=404, detail="Equipamento não encontrado")
+    
+    # Get obra info if assigned
+    obra = None
+    if item.get("obra_id"):
+        obra = await db.obras.find_one({"id": item["obra_id"]}, {"_id": 0})
+    
+    # Get movement history
+    movimentos = await db.movimentos.find(
+        {"recurso_id": equipamento_id, "tipo_recurso": "equipamento"}, 
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    return {"equipamento": item, "obra_atual": obra, "historico": movimentos}
+
+@api_router.post("/equipamentos")
 async def create_equipamento(data: EquipamentoCreate, user=Depends(get_current_user)):
     existing = await db.equipamentos.find_one({"codigo": data.codigo}, {"_id": 0})
     if existing:
         raise HTTPException(status_code=400, detail="Código já existe")
     
     equipamento = Equipamento(**data.model_dump())
-    doc = equipamento.model_dump()
-    await db.equipamentos.insert_one(doc)
+    await db.equipamentos.insert_one(equipamento.model_dump())
     return equipamento
 
-@api_router.put("/equipamentos/{equipamento_id}", response_model=Equipamento)
+@api_router.put("/equipamentos/{equipamento_id}")
 async def update_equipamento(equipamento_id: str, data: EquipamentoCreate, user=Depends(get_current_user)):
     existing = await db.equipamentos.find_one({"id": equipamento_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Equipamento não encontrado")
     
-    update_data = data.model_dump()
-    await db.equipamentos.update_one({"id": equipamento_id}, {"$set": update_data})
-    updated = await db.equipamentos.find_one({"id": equipamento_id}, {"_id": 0})
-    return updated
+    await db.equipamentos.update_one({"id": equipamento_id}, {"$set": data.model_dump()})
+    return await db.equipamentos.find_one({"id": equipamento_id}, {"_id": 0})
 
 @api_router.delete("/equipamentos/{equipamento_id}")
 async def delete_equipamento(equipamento_id: str, user=Depends(get_current_user)):
@@ -478,32 +387,50 @@ async def delete_equipamento(equipamento_id: str, user=Depends(get_current_user)
     return {"message": "Equipamento eliminado"}
 
 # ==================== VIATURA ROUTES ====================
-@api_router.get("/viaturas", response_model=List[Viatura])
+@api_router.get("/viaturas")
 async def get_viaturas(user=Depends(get_current_user)):
     items = await db.viaturas.find({}, {"_id": 0}).to_list(1000)
     return items
 
-@api_router.post("/viaturas", response_model=Viatura)
+@api_router.get("/viaturas/{viatura_id}")
+async def get_viatura(viatura_id: str, user=Depends(get_current_user)):
+    item = await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
+    if not item:
+        raise HTTPException(status_code=404, detail="Viatura não encontrada")
+    
+    obra = None
+    if item.get("obra_id"):
+        obra = await db.obras.find_one({"id": item["obra_id"]}, {"_id": 0})
+    
+    movimentos = await db.movimentos.find(
+        {"recurso_id": viatura_id, "tipo_recurso": "viatura"}, 
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    km_movimentos = await db.movimentos_viaturas.find(
+        {"viatura_id": viatura_id}, {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    return {"viatura": item, "obra_atual": obra, "historico": movimentos, "km_historico": km_movimentos}
+
+@api_router.post("/viaturas")
 async def create_viatura(data: ViaturaCreate, user=Depends(get_current_user)):
     existing = await db.viaturas.find_one({"matricula": data.matricula}, {"_id": 0})
     if existing:
         raise HTTPException(status_code=400, detail="Matrícula já existe")
     
     viatura = Viatura(**data.model_dump())
-    doc = viatura.model_dump()
-    await db.viaturas.insert_one(doc)
+    await db.viaturas.insert_one(viatura.model_dump())
     return viatura
 
-@api_router.put("/viaturas/{viatura_id}", response_model=Viatura)
+@api_router.put("/viaturas/{viatura_id}")
 async def update_viatura(viatura_id: str, data: ViaturaCreate, user=Depends(get_current_user)):
     existing = await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Viatura não encontrada")
     
-    update_data = data.model_dump()
-    await db.viaturas.update_one({"id": viatura_id}, {"$set": update_data})
-    updated = await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
-    return updated
+    await db.viaturas.update_one({"id": viatura_id}, {"$set": data.model_dump()})
+    return await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
 
 @api_router.delete("/viaturas/{viatura_id}")
 async def delete_viatura(viatura_id: str, user=Depends(get_current_user)):
@@ -513,32 +440,28 @@ async def delete_viatura(viatura_id: str, user=Depends(get_current_user)):
     return {"message": "Viatura eliminada"}
 
 # ==================== MATERIAL ROUTES ====================
-@api_router.get("/materiais", response_model=List[Material])
+@api_router.get("/materiais")
 async def get_materiais(user=Depends(get_current_user)):
-    items = await db.materiais.find({}, {"_id": 0}).to_list(1000)
-    return items
+    return await db.materiais.find({}, {"_id": 0}).to_list(1000)
 
-@api_router.post("/materiais", response_model=Material)
+@api_router.post("/materiais")
 async def create_material(data: MaterialCreate, user=Depends(get_current_user)):
     existing = await db.materiais.find_one({"codigo": data.codigo}, {"_id": 0})
     if existing:
         raise HTTPException(status_code=400, detail="Código já existe")
     
     material = Material(**data.model_dump())
-    doc = material.model_dump()
-    await db.materiais.insert_one(doc)
+    await db.materiais.insert_one(material.model_dump())
     return material
 
-@api_router.put("/materiais/{material_id}", response_model=Material)
+@api_router.put("/materiais/{material_id}")
 async def update_material(material_id: str, data: MaterialCreate, user=Depends(get_current_user)):
     existing = await db.materiais.find_one({"id": material_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Material não encontrado")
     
-    update_data = data.model_dump()
-    await db.materiais.update_one({"id": material_id}, {"$set": update_data})
-    updated = await db.materiais.find_one({"id": material_id}, {"_id": 0})
-    return updated
+    await db.materiais.update_one({"id": material_id}, {"$set": data.model_dump()})
+    return await db.materiais.find_one({"id": material_id}, {"_id": 0})
 
 @api_router.delete("/materiais/{material_id}")
 async def delete_material(material_id: str, user=Depends(get_current_user)):
@@ -547,128 +470,125 @@ async def delete_material(material_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Material não encontrado")
     return {"message": "Material eliminado"}
 
-# ==================== LOCAL ROUTES ====================
-@api_router.get("/locais", response_model=List[Local])
-async def get_locais(user=Depends(get_current_user)):
-    items = await db.locais.find({}, {"_id": 0}).to_list(1000)
-    return items
-
-@api_router.post("/locais", response_model=Local)
-async def create_local(data: LocalCreate, user=Depends(get_current_user)):
-    existing = await db.locais.find_one({"codigo": data.codigo}, {"_id": 0})
-    if existing:
-        raise HTTPException(status_code=400, detail="Código já existe")
-    
-    local = Local(**data.model_dump())
-    doc = local.model_dump()
-    await db.locais.insert_one(doc)
-    return local
-
-@api_router.put("/locais/{local_id}", response_model=Local)
-async def update_local(local_id: str, data: LocalCreate, user=Depends(get_current_user)):
-    existing = await db.locais.find_one({"id": local_id}, {"_id": 0})
-    if not existing:
-        raise HTTPException(status_code=404, detail="Local não encontrado")
-    
-    update_data = data.model_dump()
-    await db.locais.update_one({"id": local_id}, {"$set": update_data})
-    updated = await db.locais.find_one({"id": local_id}, {"_id": 0})
-    return updated
-
-@api_router.delete("/locais/{local_id}")
-async def delete_local(local_id: str, user=Depends(get_current_user)):
-    result = await db.locais.delete_one({"id": local_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Local não encontrado")
-    return {"message": "Local eliminado"}
-
 # ==================== OBRA ROUTES ====================
-@api_router.get("/obras", response_model=List[Obra])
+@api_router.get("/obras")
 async def get_obras(user=Depends(get_current_user)):
-    items = await db.obras.find({}, {"_id": 0}).to_list(1000)
-    return items
+    return await db.obras.find({}, {"_id": 0}).to_list(1000)
 
-@api_router.post("/obras", response_model=Obra)
+@api_router.get("/obras/{obra_id}")
+async def get_obra(obra_id: str, user=Depends(get_current_user)):
+    obra = await db.obras.find_one({"id": obra_id}, {"_id": 0})
+    if not obra:
+        raise HTTPException(status_code=404, detail="Obra não encontrada")
+    
+    equipamentos = await db.equipamentos.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
+    viaturas = await db.viaturas.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
+    
+    return {"obra": obra, "equipamentos": equipamentos, "viaturas": viaturas}
+
+@api_router.post("/obras")
 async def create_obra(data: ObraCreate, user=Depends(get_current_user)):
     existing = await db.obras.find_one({"codigo": data.codigo}, {"_id": 0})
     if existing:
         raise HTTPException(status_code=400, detail="Código já existe")
     
     obra = Obra(**data.model_dump())
-    doc = obra.model_dump()
-    await db.obras.insert_one(doc)
+    await db.obras.insert_one(obra.model_dump())
     return obra
 
-@api_router.put("/obras/{obra_id}", response_model=Obra)
+@api_router.put("/obras/{obra_id}")
 async def update_obra(obra_id: str, data: ObraCreate, user=Depends(get_current_user)):
     existing = await db.obras.find_one({"id": obra_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Obra não encontrada")
     
-    update_data = data.model_dump()
-    await db.obras.update_one({"id": obra_id}, {"$set": update_data})
-    updated = await db.obras.find_one({"id": obra_id}, {"_id": 0})
-    return updated
+    await db.obras.update_one({"id": obra_id}, {"$set": data.model_dump()})
+    return await db.obras.find_one({"id": obra_id}, {"_id": 0})
 
 @api_router.delete("/obras/{obra_id}")
 async def delete_obra(obra_id: str, user=Depends(get_current_user)):
     result = await db.obras.delete_one({"id": obra_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Obra não encontrada")
-    await db.locais.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None}})
+    
+    # Remove obra association from resources
+    await db.equipamentos.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None}})
+    await db.viaturas.update_many({"obra_id": obra_id}, {"$set": {"obra_id": None}})
     return {"message": "Obra eliminada"}
 
-@api_router.get("/obras/{obra_id}/recursos")
-async def get_obra_recursos(obra_id: str, user=Depends(get_current_user)):
-    obra = await db.obras.find_one({"id": obra_id}, {"_id": 0})
-    if not obra:
-        raise HTTPException(status_code=404, detail="Obra não encontrada")
+# ==================== MOVIMENTO (Atribuição) ROUTES ====================
+@api_router.post("/movimentos/atribuir")
+async def atribuir_recurso(data: MovimentoCreate, user=Depends(get_current_user)):
+    """Atribuir equipamento ou viatura a uma obra"""
+    collection = db.equipamentos if data.tipo_recurso == "equipamento" else db.viaturas
     
-    locais = await db.locais.find({"obra_id": obra_id}, {"_id": 0}).to_list(1000)
-    local_ids = [l["id"] for l in locais]
+    recurso = await collection.find_one({"id": data.recurso_id}, {"_id": 0})
+    if not recurso:
+        raise HTTPException(status_code=404, detail="Recurso não encontrado")
     
-    equipamentos = await db.equipamentos.find({"local_id": {"$in": local_ids}}, {"_id": 0}).to_list(1000)
-    viaturas = await db.viaturas.find({"local_id": {"$in": local_ids}}, {"_id": 0}).to_list(1000)
-    materiais = await db.materiais.find({"local_id": {"$in": local_ids}}, {"_id": 0}).to_list(1000)
-    
-    return {
-        "obra": obra,
-        "locais": locais,
-        "equipamentos": equipamentos,
-        "viaturas": viaturas,
-        "materiais": materiais
-    }
-
-# ==================== MOVIMENTO ROUTES ====================
-@api_router.get("/movimentos/ativos", response_model=List[MovimentoAtivo])
-async def get_movimentos_ativos(user=Depends(get_current_user)):
-    items = await db.movimentos_ativos.find({}, {"_id": 0}).to_list(1000)
-    return items
-
-@api_router.post("/movimentos/ativos", response_model=MovimentoAtivo)
-async def create_movimento_ativo(data: MovimentoAtivoCreate, user=Depends(get_current_user)):
-    movimento = MovimentoAtivo(**data.model_dump())
-    doc = movimento.model_dump()
-    await db.movimentos_ativos.insert_one(doc)
-    
-    if data.destino_id:
-        await db.equipamentos.update_one(
-            {"id": data.ativo_id},
-            {"$set": {"local_id": data.destino_id}}
+    # Check if already assigned to another obra
+    if recurso.get("obra_id") and recurso["obra_id"] != data.obra_id:
+        obra_atual = await db.obras.find_one({"id": recurso["obra_id"]}, {"_id": 0})
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Este recurso já está atribuído à obra: {obra_atual['nome'] if obra_atual else 'Desconhecida'}"
         )
     
-    return movimento
+    # Create movement record
+    movimento = Movimento(
+        recurso_id=data.recurso_id,
+        tipo_recurso=data.tipo_recurso,
+        tipo_movimento="Saida",
+        obra_id=data.obra_id,
+        responsavel_levantou=data.responsavel_levantou,
+        data_levantamento=data.data_levantamento or datetime.now(timezone.utc).isoformat()
+    )
+    await db.movimentos.insert_one(movimento.model_dump())
+    
+    # Update resource
+    await collection.update_one({"id": data.recurso_id}, {"$set": {"obra_id": data.obra_id}})
+    
+    return {"message": "Recurso atribuído com sucesso", "movimento": movimento}
 
-@api_router.get("/movimentos/stock", response_model=List[MovimentoStock])
+@api_router.post("/movimentos/devolver")
+async def devolver_recurso(data: MovimentoCreate, user=Depends(get_current_user)):
+    """Devolver equipamento ou viatura de uma obra"""
+    collection = db.equipamentos if data.tipo_recurso == "equipamento" else db.viaturas
+    
+    recurso = await collection.find_one({"id": data.recurso_id}, {"_id": 0})
+    if not recurso:
+        raise HTTPException(status_code=404, detail="Recurso não encontrado")
+    
+    # Create movement record
+    movimento = Movimento(
+        recurso_id=data.recurso_id,
+        tipo_recurso=data.tipo_recurso,
+        tipo_movimento="Devolucao",
+        obra_id=recurso.get("obra_id"),
+        responsavel_devolveu=data.responsavel_devolveu,
+        data_devolucao=data.data_devolucao or datetime.now(timezone.utc).isoformat(),
+        observacoes=data.observacoes
+    )
+    await db.movimentos.insert_one(movimento.model_dump())
+    
+    # Remove obra association
+    await collection.update_one({"id": data.recurso_id}, {"$set": {"obra_id": None}})
+    
+    return {"message": "Recurso devolvido com sucesso", "movimento": movimento}
+
+@api_router.get("/movimentos")
+async def get_movimentos(user=Depends(get_current_user)):
+    return await db.movimentos.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+
+# ==================== MOVIMENTO STOCK ROUTES ====================
+@api_router.get("/movimentos/stock")
 async def get_movimentos_stock(user=Depends(get_current_user)):
-    items = await db.movimentos_stock.find({}, {"_id": 0}).to_list(1000)
-    return items
+    return await db.movimentos_stock.find({}, {"_id": 0}).to_list(1000)
 
-@api_router.post("/movimentos/stock", response_model=MovimentoStock)
+@api_router.post("/movimentos/stock")
 async def create_movimento_stock(data: MovimentoStockCreate, user=Depends(get_current_user)):
     movimento = MovimentoStock(**data.model_dump())
-    doc = movimento.model_dump()
-    await db.movimentos_stock.insert_one(doc)
+    await db.movimentos_stock.insert_one(movimento.model_dump())
     
     material = await db.materiais.find_one({"id": data.material_id}, {"_id": 0})
     if material:
@@ -677,174 +597,234 @@ async def create_movimento_stock(data: MovimentoStockCreate, user=Depends(get_cu
             new_stock += data.quantidade
         else:
             new_stock -= data.quantidade
-        
-        await db.materiais.update_one(
-            {"id": data.material_id},
-            {"$set": {"stock_atual": new_stock}}
-        )
+        await db.materiais.update_one({"id": data.material_id}, {"$set": {"stock_atual": new_stock}})
     
     return movimento
 
-@api_router.get("/movimentos/viaturas", response_model=List[MovimentoViatura])
+# ==================== MOVIMENTO VIATURA ROUTES ====================
+@api_router.get("/movimentos/viaturas")
 async def get_movimentos_viaturas(user=Depends(get_current_user)):
-    items = await db.movimentos_viaturas.find({}, {"_id": 0}).to_list(1000)
-    return items
+    return await db.movimentos_viaturas.find({}, {"_id": 0}).to_list(1000)
 
-@api_router.post("/movimentos/viaturas", response_model=MovimentoViatura)
+@api_router.post("/movimentos/viaturas")
 async def create_movimento_viatura(data: MovimentoViaturaCreate, user=Depends(get_current_user)):
     movimento = MovimentoViatura(**data.model_dump())
-    doc = movimento.model_dump()
-    await db.movimentos_viaturas.insert_one(doc)
+    await db.movimentos_viaturas.insert_one(movimento.model_dump())
     return movimento
 
 # ==================== ALERTS ROUTES ====================
 @api_router.get("/alerts/check")
 async def check_alerts(user=Depends(get_current_user)):
-    """Check for expiring vistorias and seguros"""
     viaturas = await db.viaturas.find({"ativa": True}, {"_id": 0}).to_list(1000)
     today = datetime.now(timezone.utc).date()
     alerts = []
     
     for v in viaturas:
-        if v.get("data_vistoria"):
-            try:
-                vistoria_date = datetime.fromisoformat(v["data_vistoria"].replace("Z", "+00:00")).date()
-                days_until = (vistoria_date - today).days
-                if days_until <= ALERT_DAYS_BEFORE:
-                    alerts.append({
-                        "viatura_id": v["id"],
-                        "matricula": v["matricula"],
-                        "marca": v.get("marca", ""),
-                        "modelo": v.get("modelo", ""),
-                        "tipo_alerta": "vistoria",
-                        "data_expiracao": vistoria_date.strftime("%d/%m/%Y"),
-                        "dias_restantes": days_until
-                    })
-            except:
-                pass
-        
-        if v.get("data_seguro"):
-            try:
-                seguro_date = datetime.fromisoformat(v["data_seguro"].replace("Z", "+00:00")).date()
-                days_until = (seguro_date - today).days
-                if days_until <= ALERT_DAYS_BEFORE:
-                    alerts.append({
-                        "viatura_id": v["id"],
-                        "matricula": v["matricula"],
-                        "marca": v.get("marca", ""),
-                        "modelo": v.get("modelo", ""),
-                        "tipo_alerta": "seguro",
-                        "data_expiracao": seguro_date.strftime("%d/%m/%Y"),
-                        "dias_restantes": days_until
-                    })
-            except:
-                pass
+        for field, tipo in [("data_vistoria", "vistoria"), ("data_seguro", "seguro")]:
+            if v.get(field):
+                try:
+                    date = datetime.fromisoformat(v[field].replace("Z", "+00:00")).date()
+                    days_until = (date - today).days
+                    if days_until <= ALERT_DAYS_BEFORE:
+                        alerts.append({
+                            "viatura_id": v["id"],
+                            "matricula": v["matricula"],
+                            "marca": v.get("marca", ""),
+                            "modelo": v.get("modelo", ""),
+                            "tipo_alerta": tipo,
+                            "data_expiracao": date.strftime("%d/%m/%Y"),
+                            "dias_restantes": days_until
+                        })
+                except:
+                    pass
     
     return {"alerts": alerts, "total": len(alerts)}
 
 @api_router.post("/alerts/send")
-async def send_alerts(background_tasks: BackgroundTasks, user=Depends(get_current_user)):
-    """Send email alerts for expiring vistorias and seguros"""
+async def send_alerts(user=Depends(get_current_user)):
     if not ALERT_EMAIL or not resend.api_key:
-        raise HTTPException(status_code=400, detail="Configuração de email incompleta. Verifique RESEND_API_KEY e ALERT_EMAIL.")
+        raise HTTPException(status_code=400, detail="Configuração de email incompleta")
+    
+    check_result = await check_alerts(user)
+    alerts = check_result["alerts"]
+    
+    if not alerts:
+        return {"status": "success", "message": "Não há alertas para enviar", "alerts_count": 0}
     
     try:
-        alerts = await check_and_send_alerts()
-        return {
-            "status": "success",
-            "message": f"Email enviado com {len(alerts)} alerta(s) para {ALERT_EMAIL}" if alerts else "Não há alertas para enviar",
-            "alerts_count": len(alerts)
-        }
+        await send_alert_email(alerts)
+        return {"status": "success", "message": f"Email enviado com {len(alerts)} alerta(s)", "alerts_count": len(alerts)}
     except Exception as e:
         error_msg = str(e)
-        if "verify a domain" in error_msg.lower() or "testing emails" in error_msg.lower():
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Para enviar emails para {ALERT_EMAIL}, precisa de verificar o domínio em resend.com/domains. Atualmente só pode enviar para o email da conta Resend."
-            )
+        if "verify a domain" in error_msg.lower():
+            raise HTTPException(status_code=400, detail=f"Para enviar emails para {ALERT_EMAIL}, precisa de verificar o domínio em resend.com/domains")
         raise HTTPException(status_code=500, detail=f"Erro ao enviar email: {error_msg}")
 
-# ==================== SUMMARY ROUTE ====================
-@api_router.get("/summary")
-async def get_summary(user=Depends(get_current_user)):
+# ==================== IMPORT/EXPORT ROUTES ====================
+@api_router.post("/import/excel")
+async def import_excel(file: UploadFile = File(...), user=Depends(get_current_user)):
+    """Import data from Excel file"""
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Apenas ficheiros Excel são permitidos")
+    
+    content = await file.read()
+    wb = load_workbook(BytesIO(content))
+    imported = {"equipamentos": 0, "viaturas": 0, "materiais": 0, "obras": 0}
+    
+    # Import Equipamentos
+    if "Equipamentos" in wb.sheetnames or "Equipamento" in wb.sheetnames:
+        ws = wb["Equipamentos"] if "Equipamentos" in wb.sheetnames else wb["Equipamento"]
+        headers = [cell.value for cell in ws[1]]
+        
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not row[0]:
+                continue
+            data = dict(zip(headers, row))
+            codigo = str(data.get("Codigo", data.get("codigo", data.get("Código", ""))))
+            if not codigo:
+                continue
+            
+            existing = await db.equipamentos.find_one({"codigo": codigo})
+            if existing:
+                continue
+            
+            equipamento = Equipamento(
+                codigo=codigo,
+                descricao=str(data.get("Descricao", data.get("descricao", data.get("Descrição", "")))),
+                marca=str(data.get("Marca", data.get("marca", "")) or ""),
+                modelo=str(data.get("Modelo", data.get("modelo", "")) or ""),
+                categoria=str(data.get("Categoria", data.get("categoria", "")) or ""),
+                numero_serie=str(data.get("Numero_Serie", data.get("numero_serie", data.get("Nº Série", ""))) or ""),
+                estado_conservacao=str(data.get("Estado_Conservacao", data.get("estado_conservacao", data.get("Estado", "Bom"))) or "Bom"),
+                ativo=str(data.get("Ativo", data.get("ativo", "Sim"))).lower() in ["sim", "true", "1", "yes"]
+            )
+            await db.equipamentos.insert_one(equipamento.model_dump())
+            imported["equipamentos"] += 1
+    
+    # Import Viaturas
+    if "Viaturas" in wb.sheetnames or "Viatura" in wb.sheetnames:
+        ws = wb["Viaturas"] if "Viaturas" in wb.sheetnames else wb["Viatura"]
+        headers = [cell.value for cell in ws[1]]
+        
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not row[0]:
+                continue
+            data = dict(zip(headers, row))
+            matricula = str(data.get("Matricula", data.get("matricula", data.get("Matrícula", ""))))
+            if not matricula:
+                continue
+            
+            existing = await db.viaturas.find_one({"matricula": matricula})
+            if existing:
+                continue
+            
+            viatura = Viatura(
+                matricula=matricula,
+                marca=str(data.get("Marca", data.get("marca", "")) or ""),
+                modelo=str(data.get("Modelo", data.get("modelo", "")) or ""),
+                combustivel=str(data.get("Combustivel", data.get("combustivel", data.get("Combustível", "Gasoleo"))) or "Gasoleo"),
+                ativa=str(data.get("Ativa", data.get("ativa", "Sim"))).lower() in ["sim", "true", "1", "yes"]
+            )
+            await db.viaturas.insert_one(viatura.model_dump())
+            imported["viaturas"] += 1
+    
+    # Import Materiais
+    if "Materiais" in wb.sheetnames or "Material" in wb.sheetnames:
+        ws = wb["Materiais"] if "Materiais" in wb.sheetnames else wb["Material"]
+        headers = [cell.value for cell in ws[1]]
+        
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not row[0]:
+                continue
+            data = dict(zip(headers, row))
+            codigo = str(data.get("Codigo", data.get("codigo", data.get("Código", "")))  or data.get("ID_Material", ""))
+            if not codigo:
+                continue
+            
+            existing = await db.materiais.find_one({"codigo": codigo})
+            if existing:
+                continue
+            
+            material = Material(
+                codigo=codigo,
+                descricao=str(data.get("Descricao", data.get("descricao", data.get("Descrição", ""))) or ""),
+                unidade=str(data.get("Unidade", data.get("unidade", "unidade")) or "unidade"),
+                stock_minimo=float(data.get("Stock_Minimo", data.get("stock_minimo", 0)) or 0)
+            )
+            await db.materiais.insert_one(material.model_dump())
+            imported["materiais"] += 1
+    
+    # Import Obras
+    if "Obras" in wb.sheetnames or "Obra" in wb.sheetnames:
+        ws = wb["Obras"] if "Obras" in wb.sheetnames else wb["Obra"]
+        headers = [cell.value for cell in ws[1]]
+        
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not row[0]:
+                continue
+            data = dict(zip(headers, row))
+            codigo = str(data.get("Codigo", data.get("codigo", data.get("ID_Obra", ""))))
+            if not codigo:
+                continue
+            
+            existing = await db.obras.find_one({"codigo": codigo})
+            if existing:
+                continue
+            
+            obra = Obra(
+                codigo=codigo,
+                nome=str(data.get("Nome", data.get("nome", "")) or ""),
+                estado=str(data.get("Estado", data.get("estado", "Ativa")) or "Ativa")
+            )
+            await db.obras.insert_one(obra.model_dump())
+            imported["obras"] += 1
+    
+    return {"message": "Importação concluída", "imported": imported}
+
+@api_router.get("/export/excel")
+async def export_excel(user=Depends(get_current_user)):
     equipamentos = await db.equipamentos.find({}, {"_id": 0}).to_list(1000)
     viaturas = await db.viaturas.find({}, {"_id": 0}).to_list(1000)
     materiais = await db.materiais.find({}, {"_id": 0}).to_list(1000)
-    locais = await db.locais.find({}, {"_id": 0}).to_list(1000)
     obras = await db.obras.find({}, {"_id": 0}).to_list(1000)
     
-    alerts = []
-    today = datetime.now(timezone.utc).date()
+    wb = Workbook()
     
+    ws = wb.active
+    ws.title = "Equipamentos"
+    ws.append(["Código", "Descrição", "Marca", "Modelo", "Categoria", "Nº Série", "Estado", "Ativo"])
+    for e in equipamentos:
+        ws.append([e.get("codigo"), e.get("descricao"), e.get("marca"), e.get("modelo"), 
+                   e.get("categoria"), e.get("numero_serie"), e.get("estado_conservacao"),
+                   "Sim" if e.get("ativo") else "Não"])
+    
+    ws = wb.create_sheet("Viaturas")
+    ws.append(["Matrícula", "Marca", "Modelo", "Combustível", "Data Vistoria", "Data Seguro", "Ativa"])
     for v in viaturas:
-        if v.get("data_vistoria"):
-            try:
-                vistoria_date = datetime.fromisoformat(v["data_vistoria"].replace("Z", "+00:00")).date()
-                days_until = (vistoria_date - today).days
-                if days_until <= ALERT_DAYS_BEFORE:
-                    alerts.append({
-                        "type": "vistoria",
-                        "item": f"{v['marca']} {v['modelo']} ({v['matricula']})",
-                        "message": f"Vistoria em {days_until} dias" if days_until >= 0 else "Vistoria expirada",
-                        "urgent": days_until < 0
-                    })
-            except:
-                pass
-        
-        if v.get("data_seguro"):
-            try:
-                seguro_date = datetime.fromisoformat(v["data_seguro"].replace("Z", "+00:00")).date()
-                days_until = (seguro_date - today).days
-                if days_until <= ALERT_DAYS_BEFORE:
-                    alerts.append({
-                        "type": "seguro",
-                        "item": f"{v['marca']} {v['modelo']} ({v['matricula']})",
-                        "message": f"Seguro expira em {days_until} dias" if days_until >= 0 else "Seguro expirado",
-                        "urgent": days_until < 0
-                    })
-            except:
-                pass
+        ws.append([v.get("matricula"), v.get("marca"), v.get("modelo"), v.get("combustivel"),
+                   v.get("data_vistoria"), v.get("data_seguro"), "Sim" if v.get("ativa") else "Não"])
     
+    ws = wb.create_sheet("Materiais")
+    ws.append(["Código", "Descrição", "Unidade", "Stock Atual", "Stock Mínimo", "Ativo"])
     for m in materiais:
-        if m.get("stock_atual", 0) <= m.get("stock_minimo", 0) and m.get("stock_minimo", 0) > 0:
-            alerts.append({
-                "type": "stock",
-                "item": f"{m['codigo']} - {m['descricao']}",
-                "message": f"Stock baixo: {m.get('stock_atual', 0)} {m.get('unidade', 'un')} (mín: {m.get('stock_minimo', 0)})",
-                "urgent": m.get("stock_atual", 0) == 0
-            })
+        ws.append([m.get("codigo"), m.get("descricao"), m.get("unidade"),
+                   m.get("stock_atual"), m.get("stock_minimo"), "Sim" if m.get("ativo") else "Não"])
     
-    return {
-        "equipamentos": {
-            "total": len(equipamentos),
-            "ativos": len([e for e in equipamentos if e.get("ativo", True)]),
-            "inativos": len([e for e in equipamentos if not e.get("ativo", True)])
-        },
-        "viaturas": {
-            "total": len(viaturas),
-            "ativas": len([v for v in viaturas if v.get("ativa", True)]),
-            "inativas": len([v for v in viaturas if not v.get("ativa", True)])
-        },
-        "materiais": {
-            "total": len(materiais),
-            "stock_total": sum(m.get("stock_atual", 0) for m in materiais)
-        },
-        "locais": {
-            "total": len(locais),
-            "armazens": len([l for l in locais if l.get("tipo") == "ARM"]),
-            "oficinas": len([l for l in locais if l.get("tipo") == "OFI"]),
-            "obras": len([l for l in locais if l.get("tipo") == "OBR"])
-        },
-        "obras": {
-            "total": len(obras),
-            "ativas": len([o for o in obras if o.get("estado") == "Ativa"]),
-            "concluidas": len([o for o in obras if o.get("estado") == "Concluida"]),
-            "pausadas": len([o for o in obras if o.get("estado") == "Pausada"])
-        },
-        "alerts": alerts
-    }
+    ws = wb.create_sheet("Obras")
+    ws.append(["Código", "Nome", "Endereço", "Cliente", "Estado"])
+    for o in obras:
+        ws.append([o.get("codigo"), o.get("nome"), o.get("endereco"), o.get("cliente"), o.get("estado")])
+    
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=dados_armazem.xlsx"}
+    )
 
-# ==================== EXPORT ROUTES ====================
 @api_router.get("/export/pdf")
 async def export_pdf(user=Depends(get_current_user)):
     equipamentos = await db.equipamentos.find({}, {"_id": 0}).to_list(1000)
@@ -857,27 +837,25 @@ async def export_pdf(user=Depends(get_current_user)):
     styles = getSampleStyleSheet()
     elements = []
     
-    elements.append(Paragraph("Relatório de Armazém - Construção Civil", styles['Title']))
+    elements.append(Paragraph("José Firmino - Gestão de Armazém", styles['Title']))
     elements.append(Paragraph(f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
     elements.append(Spacer(1, 20))
     
     summary_data = [
-        ["Categoria", "Total", "Ativos", "Inativos"],
-        ["Equipamentos", len(equipamentos), len([e for e in equipamentos if e.get("ativo")]), len([e for e in equipamentos if not e.get("ativo")])],
-        ["Viaturas", len(viaturas), len([v for v in viaturas if v.get("ativa")]), len([v for v in viaturas if not v.get("ativa")])],
-        ["Materiais", len(materiais), "-", "-"],
-        ["Obras", len(obras), len([o for o in obras if o.get("estado") == "Ativa"]), len([o for o in obras if o.get("estado") != "Ativa"])]
+        ["Categoria", "Total", "Ativos/Ativas"],
+        ["Equipamentos", len(equipamentos), len([e for e in equipamentos if e.get("ativo")])],
+        ["Viaturas", len(viaturas), len([v for v in viaturas if v.get("ativa")])],
+        ["Materiais", len(materiais), "-"],
+        ["Obras", len(obras), len([o for o in obras if o.get("estado") == "Ativa"])]
     ]
     
     table = Table(summary_data)
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.976, 0.451, 0.086)),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
         ('GRID', (0, 0), (-1, -1), 1, colors.black)
     ]))
     elements.append(table)
@@ -885,67 +863,70 @@ async def export_pdf(user=Depends(get_current_user)):
     doc.build(elements)
     buffer.seek(0)
     
-    return Response(
-        content=buffer.getvalue(),
-        media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=relatorio_armazem.pdf"}
-    )
+    return Response(content=buffer.getvalue(), media_type="application/pdf",
+                    headers={"Content-Disposition": "attachment; filename=relatorio_armazem.pdf"})
 
-@api_router.get("/export/excel")
-async def export_excel(user=Depends(get_current_user)):
+# ==================== SUMMARY ROUTE ====================
+@api_router.get("/summary")
+async def get_summary(user=Depends(get_current_user)):
     equipamentos = await db.equipamentos.find({}, {"_id": 0}).to_list(1000)
     viaturas = await db.viaturas.find({}, {"_id": 0}).to_list(1000)
     materiais = await db.materiais.find({}, {"_id": 0}).to_list(1000)
-    locais = await db.locais.find({}, {"_id": 0}).to_list(1000)
     obras = await db.obras.find({}, {"_id": 0}).to_list(1000)
     
-    wb = Workbook()
+    alerts = []
+    today = datetime.now(timezone.utc).date()
     
-    ws = wb.active
-    ws.title = "Equipamentos"
-    ws.append(["Código", "Descrição", "Marca", "Modelo", "Categoria", "Nº Série", "Estado Conservação", "Responsável", "Ativo"])
-    for e in equipamentos:
-        ws.append([e.get("codigo", ""), e.get("descricao", ""), e.get("marca", ""), e.get("modelo", ""), 
-                   e.get("categoria", ""), e.get("numero_serie", ""), e.get("estado_conservacao", ""),
-                   e.get("responsavel", ""), "Sim" if e.get("ativo") else "Não"])
-    
-    ws = wb.create_sheet("Viaturas")
-    ws.append(["Matrícula", "Marca", "Modelo", "Combustível", "Data Vistoria", "Data Seguro", "Apólice", "Ativa", "Observações"])
     for v in viaturas:
-        ws.append([v.get("matricula", ""), v.get("marca", ""), v.get("modelo", ""), v.get("combustivel", ""),
-                   v.get("data_vistoria", ""), v.get("data_seguro", ""), v.get("apolice_seguro", ""),
-                   "Sim" if v.get("ativa") else "Não", v.get("observacoes", "")])
+        for field, tipo, msg in [("data_vistoria", "vistoria", "Vistoria"), ("data_seguro", "seguro", "Seguro")]:
+            if v.get(field):
+                try:
+                    date = datetime.fromisoformat(v[field].replace("Z", "+00:00")).date()
+                    days_until = (date - today).days
+                    if days_until <= ALERT_DAYS_BEFORE:
+                        alerts.append({
+                            "type": tipo,
+                            "item": f"{v['marca']} {v['modelo']} ({v['matricula']})",
+                            "message": f"{msg} em {days_until} dias" if days_until >= 0 else f"{msg} expirado",
+                            "urgent": days_until < 0
+                        })
+                except:
+                    pass
     
-    ws = wb.create_sheet("Materiais")
-    ws.append(["Código", "Descrição", "Unidade", "Stock Atual", "Stock Mínimo", "Ativo"])
     for m in materiais:
-        ws.append([m.get("codigo", ""), m.get("descricao", ""), m.get("unidade", ""),
-                   m.get("stock_atual", 0), m.get("stock_minimo", 0), "Sim" if m.get("ativo") else "Não"])
+        if m.get("stock_atual", 0) <= m.get("stock_minimo", 0) and m.get("stock_minimo", 0) > 0:
+            alerts.append({
+                "type": "stock",
+                "item": f"{m['codigo']} - {m['descricao']}",
+                "message": f"Stock baixo: {m.get('stock_atual', 0)} {m.get('unidade', 'un')}",
+                "urgent": m.get("stock_atual", 0) == 0
+            })
     
-    ws = wb.create_sheet("Locais")
-    ws.append(["Código", "Nome", "Tipo", "Ativo"])
-    for l in locais:
-        ws.append([l.get("codigo", ""), l.get("nome", ""), l.get("tipo", ""), "Sim" if l.get("ativo") else "Não"])
-    
-    ws = wb.create_sheet("Obras")
-    ws.append(["Código", "Nome", "Endereço", "Cliente", "Estado"])
-    for o in obras:
-        ws.append([o.get("codigo", ""), o.get("nome", ""), o.get("endereco", ""), o.get("cliente", ""), o.get("estado", "")])
-    
-    buffer = BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-    
-    return Response(
-        content=buffer.getvalue(),
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=relatorio_armazem.xlsx"}
-    )
+    return {
+        "equipamentos": {
+            "total": len(equipamentos),
+            "ativos": len([e for e in equipamentos if e.get("ativo", True)]),
+            "em_obra": len([e for e in equipamentos if e.get("obra_id")])
+        },
+        "viaturas": {
+            "total": len(viaturas),
+            "ativas": len([v for v in viaturas if v.get("ativa", True)]),
+            "em_obra": len([v for v in viaturas if v.get("obra_id")])
+        },
+        "materiais": {
+            "total": len(materiais),
+            "stock_total": sum(m.get("stock_atual", 0) for m in materiais)
+        },
+        "obras": {
+            "total": len(obras),
+            "ativas": len([o for o in obras if o.get("estado") == "Ativa"])
+        },
+        "alerts": alerts
+    }
 
-# ==================== ROOT ====================
 @api_router.get("/")
 async def root():
-    return {"message": "Warehouse Management API"}
+    return {"message": "José Firmino - API de Gestão de Armazém"}
 
 app.include_router(api_router)
 
