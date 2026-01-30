@@ -24,6 +24,19 @@ import Layout from "@/components/Layout";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
 
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('PWA: Service Worker registado com sucesso:', registration.scope);
+      })
+      .catch((error) => {
+        console.log('PWA: Falha ao registar Service Worker:', error);
+      });
+  });
+}
+
 // Auth Context
 export const AuthContext = createContext(null);
 
