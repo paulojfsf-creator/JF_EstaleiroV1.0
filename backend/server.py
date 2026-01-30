@@ -567,7 +567,7 @@ async def atribuir_recurso(data: AtribuirRecursoRequest, user=Depends(get_curren
     return {"message": "Recurso atribuído com sucesso", "movimento_id": movimento.id}
 
 @api_router.post("/movimentos/devolver")
-async def devolver_recurso(data: MovimentoCreate, user=Depends(get_current_user)):
+async def devolver_recurso(data: DevolverRecursoRequest, user=Depends(get_current_user)):
     """Devolver equipamento ou viatura de uma obra"""
     collection = db.equipamentos if data.tipo_recurso == "equipamento" else db.viaturas
     
@@ -590,7 +590,7 @@ async def devolver_recurso(data: MovimentoCreate, user=Depends(get_current_user)
     # Remove obra association
     await collection.update_one({"id": data.recurso_id}, {"$set": {"obra_id": None}})
     
-    return {"message": "Recurso devolvido com sucesso", "movimento": movimento}
+    return {"message": "Recurso devolvido com sucesso", "movimento_id": movimento.id}
 
 @api_router.get("/movimentos")
 async def get_movimentos(user=Depends(get_current_user)):
