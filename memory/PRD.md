@@ -1,74 +1,117 @@
 # PRD - Gestão de Armazém de Construção Civil
+## José Firmino
 
-## Problema Original
-Criar uma aplicação de gestão de armazém de construção civil, com controlo de equipamentos, viaturas, materiais, locais e obras, com movimentos e resumos.
+## 1. Visão Geral do Produto
+Sistema de gestão de armazém para construção civil, permitindo o controlo de equipamentos, viaturas, materiais e obras. A aplicação oferece funcionalidades completas de CRUD, sistema de atribuição de recursos a obras com histórico de movimentos, alertas de manutenção por email e capacidade de importação/exportação de dados.
 
-## User Personas
-- **Gestor de Armazém**: Controla inventário, regista entradas/saídas de recursos
-- **Responsável de Obra**: Visualiza recursos atribuídos às suas obras
-- **Administrador**: Gestão completa do sistema, exportação de relatórios
+## 2. Requisitos Funcionais
 
-## Core Requirements (baseado no Excel do utilizador)
-- Autenticação JWT (login/registo)
-- CRUD de Equipamentos (código, descrição, marca, modelo, data_aquisição, categoria, número_série, responsável, estado_conservação, foto, local)
-- CRUD de Viaturas (matrícula, marca, modelo, combustível, data_vistoria, data_seguro, documento_único, apólice_seguro, observações, local)
-- CRUD de Materiais (código, descrição, unidade, stock_atual, stock_mínimo, local)
-- CRUD de Locais (código, nome, tipo: ARM/OFI/OBR/OBS, obra associada)
-- CRUD de Obras (código, nome, endereço, cliente, estado)
-- Movimentos de Ativos (saída/devolução de equipamentos)
-- Movimentos de Stock (entrada/saída de materiais com atualização automática)
-- Movimentos de Viaturas (registo de km e utilização)
-- Alertas (stock baixo, vistoria/seguro a expirar)
-- Notificações por email (Resend) para alertas de vistoria/seguro
-- Upload de fotos para equipamentos e viaturas
-- Exportação de relatórios (PDF/Excel)
+### 2.1 Autenticação
+- ✅ Login com email e password (JWT)
+- ✅ Registo de novos utilizadores
+- ✅ Proteção de rotas
 
-## What's Been Implemented (Janeiro 2026)
+### 2.2 Gestão de Equipamentos
+- ✅ CRUD completo (criar, ler, atualizar, eliminar)
+- ✅ Campos: código, descrição, marca, modelo, categoria, nº série, estado de conservação, foto
+- ✅ Atribuição direta a obras (sem entidade "Locais")
+- ✅ Ficha de detalhe com histórico completo de movimentos
 
-### Backend (FastAPI + MongoDB)
-- ✅ Autenticação JWT com bcrypt
-- ✅ CRUD Equipamentos com todos os campos do Excel
-- ✅ CRUD Viaturas com campos de vistoria e seguro
-- ✅ CRUD Materiais com stock_atual e stock_minimo
-- ✅ CRUD Locais com tipos (ARM, OFI, OBR, OBS)
-- ✅ CRUD Obras com código
-- ✅ Movimentos de Ativos (Saída/Devolução) com atualização de local
-- ✅ Movimentos de Stock com atualização automática do stock
-- ✅ Movimentos de Viaturas com tracking de km
-- ✅ Alertas automáticos (stock baixo, vistoria/seguro - 7 dias antes)
-- ✅ Upload de fotos (POST /api/upload)
-- ✅ Notificações por email (Resend) para geral@josefirmino.pt
-- ✅ Exportação PDF e Excel
+### 2.3 Gestão de Viaturas
+- ✅ CRUD completo
+- ✅ Campos: matrícula, marca, modelo, combustível, documento único, apólice de seguro
+- ✅ Datas de vistoria e seguro com alertas
+- ✅ Atribuição direta a obras
+- ✅ Ficha de detalhe com histórico de movimentos e KMs
 
-### Frontend (React + Tailwind + Shadcn/UI)
-- ✅ Página de Login/Registo
-- ✅ Dashboard com resumos e alertas
-- ✅ Gestão de Equipamentos (com upload de fotos)
-- ✅ Gestão de Viaturas (com upload de fotos e botão Enviar Alertas)
-- ✅ Gestão de Materiais (com stock atual/mínimo)
-- ✅ Gestão de Locais (com tipos)
-- ✅ Gestão de Obras (com código)
-- ✅ Detalhe de Obra com recursos associados
-- ✅ Movimentos de Ativos
-- ✅ Movimentos de Stock
-- ✅ Movimentos de Viaturas
-- ✅ Página de Relatórios (PDF/Excel)
-- ✅ Pesquisa em todas as tabelas
-- ✅ Sidebar colapsável com menu de movimentos
+### 2.4 Gestão de Materiais
+- ✅ CRUD completo
+- ✅ Campos: código, descrição, unidade, stock atual, stock mínimo
+- ✅ Alerta visual quando stock baixo
 
-## Technical Stack
-- **Backend**: FastAPI, MongoDB, Motor, JWT, bcrypt, Resend
-- **Frontend**: React 19, Tailwind CSS, Shadcn/UI, Axios
-- **Export**: reportlab (PDF), openpyxl (Excel)
-- **Email**: Resend (notificações de alertas)
+### 2.5 Gestão de Obras
+- ✅ CRUD completo
+- ✅ Campos: código, nome, endereço, cliente, estado (Ativa/Concluída/Pausada)
+- ✅ Página de detalhe mostrando recursos atribuídos
 
-## Configuração de Email
-- Email de destino: geral@josefirmino.pt
-- Alertas enviados: 7 dias antes da expiração
-- Nota: Para enviar emails para domínios externos, é necessário verificar o domínio em resend.com/domains
+### 2.6 Sistema de Movimentos
+- ✅ Movimentos de Ativos: atribuição e devolução de equipamentos/viaturas
+- ✅ Movimentos de Stock: entradas e saídas de materiais
+- ✅ Movimentos de Viaturas: registo de quilometragem
+- ✅ Validação de dupla atribuição (não permite atribuir recurso já em obra)
 
-## Next Tasks
-1. Verificar domínio no Resend para envio de emails
-2. Dashboard com gráficos de utilização
-3. Sistema de códigos de barras/QR codes
-4. Relatórios personalizáveis por período
+### 2.7 Alertas e Notificações
+- ✅ Sistema de alertas para vistoria/seguro de viaturas (via Resend)
+- ✅ Dashboard com alertas visuais
+
+### 2.8 Import/Export de Dados
+- ✅ Exportar dados para Excel (.xlsx)
+- ✅ Exportar relatório PDF
+- ✅ Importar dados de ficheiro Excel
+
+## 3. Design e Interface
+
+### 3.1 Identidade Visual
+- ✅ Logótipo José Firmino
+- ✅ Tema escuro (preto #0a0a0a, cinza #262626, laranja #f97316)
+- ✅ Design responsivo
+- ✅ Componentes Shadcn/UI + TailwindCSS
+
+### 3.2 Layout
+- ✅ Menu lateral colapsável
+- ✅ Dashboard com estatísticas e alertas
+- ✅ Tabelas com pesquisa e ações rápidas
+- ✅ Formulários em modais
+
+## 4. Arquitetura Técnica
+
+### 4.1 Backend
+- **Framework**: FastAPI
+- **Base de dados**: MongoDB
+- **Autenticação**: JWT
+- **Upload de ficheiros**: local /uploads
+- **Email**: Resend API
+
+### 4.2 Frontend
+- **Framework**: React
+- **UI**: Shadcn/UI + TailwindCSS
+- **Roteamento**: React Router
+- **HTTP**: Axios
+- **Notificações**: Sonner (toast)
+
+### 4.3 Endpoints API
+- `/api/auth/login`, `/api/auth/register`
+- `/api/equipamentos`, `/api/equipamentos/{id}`
+- `/api/viaturas`, `/api/viaturas/{id}`
+- `/api/materiais`, `/api/materiais/{id}`
+- `/api/obras`, `/api/obras/{id}`
+- `/api/movimentos`, `/api/movimentos/atribuir`, `/api/movimentos/devolver`
+- `/api/movimentos/stock`, `/api/movimentos/viaturas`
+- `/api/export/pdf`, `/api/export/excel`
+- `/api/import/excel`
+- `/api/alerts/send`
+- `/api/summary`
+
+## 5. O Que Foi Implementado (30/01/2026)
+
+### Grande Refatoração Concluída:
+1. ✅ Nova identidade visual com logótipo José Firmino
+2. ✅ Tema escuro com cores preto, cinza e laranja
+3. ✅ Remoção completa da entidade "Locais"
+4. ✅ Associação direta de recursos a "Obras"
+5. ✅ Fichas de detalhe para equipamentos com histórico de movimentos
+6. ✅ Fichas de detalhe para viaturas com histórico de movimentos e KMs
+7. ✅ Sistema de movimentos (atribuir/devolver) com validação
+8. ✅ Funcionalidade de Import/Export de dados (Excel e PDF)
+9. ✅ Validação de dupla atribuição de recursos
+
+## 6. Credenciais de Teste
+- **Email**: test@test.com
+- **Password**: test123
+
+## 7. Próximos Passos (Backlog)
+- [ ] Dashboard com gráficos de utilização
+- [ ] Relatórios personalizáveis por período
+- [ ] Códigos de barras/QR codes para equipamentos
+- [ ] Notificações push no browser
+- [ ] Histórico de manutenções para equipamentos e viaturas
