@@ -301,6 +301,12 @@ export default function ViaturaDetail() {
                         </Badge>
                         <span className="text-xs text-neutral-500">{formatDate(mov.created_at)}</span>
                       </div>
+                      {mov.obra_nome && (
+                        <p className="text-sm text-neutral-300 mb-2">
+                          <Building2 className="h-3 w-3 inline mr-1 text-orange-500" />
+                          Obra: <span className="text-orange-500 font-medium">{mov.obra_nome}</span>
+                        </p>
+                      )}
                       {mov.tipo_movimento === "Saida" ? (
                         <>
                           <p className="text-sm text-neutral-300">

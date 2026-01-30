@@ -209,6 +209,12 @@ export default function EquipamentoDetail() {
                         </Badge>
                         <span className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>{formatDate(mov.created_at)}</span>
                       </div>
+                      {mov.obra_nome && (
+                        <p className={`text-sm mb-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          <Building2 className="h-3 w-3 inline mr-1 text-orange-500" />
+                          Obra: <span className="text-orange-500 font-medium">{mov.obra_nome}</span>
+                        </p>
+                      )}
                       {mov.tipo_movimento === "Saida" ? (
                         <>
                           <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
