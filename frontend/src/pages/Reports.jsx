@@ -341,8 +341,8 @@ export default function Reports() {
                   Relatório de Movimentos de Ativos
                 </CardTitle>
                 <CardDescription className={isDark ? 'text-neutral-400' : 'text-gray-500'}>
-                  {filtroObra ? `Obra: ${getObraNome(filtroObra)}` : "Todas as obras"} • 
-                  {filtroMes ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
+                  {filtroObra && filtroObra !== "all" ? `Obra: ${getObraNome(filtroObra)}` : "Todas as obras"} • 
+                  {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -428,8 +428,8 @@ export default function Reports() {
                   Relatório de Consumo de Materiais
                 </CardTitle>
                 <CardDescription className={isDark ? 'text-neutral-400' : 'text-gray-500'}>
-                  {filtroObra ? `Obra: ${getObraNome(filtroObra)}` : "Todas as obras"} • 
-                  {filtroMes ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
+                  {filtroObra && filtroObra !== "all" ? `Obra: ${getObraNome(filtroObra)}` : "Todas as obras"} • 
+                  {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
               <CardContent>
