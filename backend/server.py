@@ -533,7 +533,7 @@ async def delete_obra(obra_id: str, user=Depends(get_current_user)):
 
 # ==================== MOVIMENTO (Atribuição) ROUTES ====================
 @api_router.post("/movimentos/atribuir")
-async def atribuir_recurso(data: MovimentoCreate, user=Depends(get_current_user)):
+async def atribuir_recurso(data: AtribuirRecursoRequest, user=Depends(get_current_user)):
     """Atribuir equipamento ou viatura a uma obra"""
     collection = db.equipamentos if data.tipo_recurso == "equipamento" else db.viaturas
     
@@ -556,14 +556,15 @@ async def atribuir_recurso(data: MovimentoCreate, user=Depends(get_current_user)
         tipo_movimento="Saida",
         obra_id=data.obra_id,
         responsavel_levantou=data.responsavel_levantou,
-        data_levantamento=data.data_levantamento or datetime.now(timezone.utc).isoformat()
+        data_levantamento=data.data_levantamento or datetime.now(timezone.utc).isoformat(),
+        observacoes=data.observacoes
     )
     await db.movimentos.insert_one(movimento.model_dump())
     
     # Update resource
     await collection.update_one({"id": data.recurso_id}, {"$set": {"obra_id": data.obra_id}})
     
-    return {"message": "Recurso atribuído com sucesso", "movimento": movimento}
+    return {"message": "Recurso atribuído com sucesso", "movimento_id": movimento.id}
 
 @api_router.post("/movimentos/devolver")
 async def devolver_recurso(data: MovimentoCreate, user=Depends(get_current_user)):
