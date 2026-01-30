@@ -105,9 +105,15 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 - `/api/alerts/send`
 - `/api/summary`
 
-## 5. O Que Foi Implementado (30/01/2026)
+## 5. O Que Foi Implementado
 
-### Sessão Atual:
+### Sessão 30/01/2026 (Atual):
+1. ✅ Coluna "Foto" como primeira coluna na tabela de Viaturas
+2. ✅ Nome da obra exibido no histórico de movimentos (Equipamentos e Viaturas)
+3. ✅ Correção de cores dos inputs no modo claro (texto legível)
+4. ✅ Backend enriquece movimentos com obra_nome e obra_codigo
+
+### Sessão Anterior:
 1. ✅ Lançamento direto para obra nas páginas de Equipamentos/Viaturas/Materiais
 2. ✅ Ficha de detalhe ao clicar na linha (linhas clicáveis)
 3. ✅ Ficha de detalhe para Materiais (nova)
@@ -115,8 +121,9 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 5. ✅ Otimização completa para mobile e tablet
 6. ✅ Cards responsivos para mobile em vez de tabelas
 7. ✅ Menu lateral responsivo com hamburger para mobile
+8. ✅ Coluna "Foto" como primeira coluna na tabela de Equipamentos
 
-### Sessão Anterior:
+### Sessões Anteriores:
 1. ✅ Nova identidade visual com logótipo José Firmino
 2. ✅ Tema escuro com cores preto, cinza e laranja
 3. ✅ Remoção completa da entidade "Locais"
@@ -132,9 +139,16 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 - **Password**: test123
 
 ## 7. Próximos Passos (Backlog)
+
+### P1 - Prioritário:
+- [ ] Relatórios avançados filtráveis por mês e por obra (ex: "material gasto na obra X em janeiro")
+  - Novos endpoints no backend com agregações MongoDB
+  - Nova UI com filtros na página de Relatórios
+
+### P2 - Futuro:
+- [ ] Progressive Web App (PWA) - Permitir instalação no telemóvel
 - [ ] Dashboard com gráficos de utilização
 - [ ] Relatórios personalizáveis por período
 - [ ] Códigos de barras/QR codes para equipamentos
 - [ ] Notificações push no browser
 - [ ] Histórico de manutenções para equipamentos e viaturas
-- [ ] App nativa (PWA ou React Native)
