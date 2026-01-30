@@ -325,7 +325,7 @@ export default function Reports() {
                 <Button onClick={fetchRelatorioStock} disabled={loading} variant="outline" className={isDark ? 'border-neutral-600 text-neutral-300 hover:bg-neutral-700' : 'border-gray-300'}>
                   <Package className="h-4 w-4 mr-2" /> Consumo de Materiais
                 </Button>
-                <Button onClick={fetchRelatorioObra} disabled={loading || !filtroObra} variant="outline" className={isDark ? 'border-neutral-600 text-neutral-300 hover:bg-neutral-700' : 'border-gray-300'}>
+                <Button onClick={fetchRelatorioObra} disabled={loading || !filtroObra || filtroObra === "all"} variant="outline" className={isDark ? 'border-neutral-600 text-neutral-300 hover:bg-neutral-700' : 'border-gray-300'}>
                   <Building2 className="h-4 w-4 mr-2" /> Relatório da Obra
                 </Button>
               </div>
