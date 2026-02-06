@@ -37,7 +37,12 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 ### 2.5 Gestão de Obras
 - ✅ CRUD completo
 - ✅ Campos: código, nome, endereço, cliente, estado (Ativa/Concluída/Pausada)
+- ✅ Linhas clicáveis para abrir ficha de detalhe
 - ✅ Página de detalhe mostrando recursos atribuídos
+- ✅ Atribuir equipamentos diretamente na página da obra
+- ✅ Atribuir viaturas diretamente na página da obra
+- ✅ Registar movimentos de materiais (entrada/saída) para a obra
+- ✅ Devolver recursos da obra
 
 ### 2.6 Sistema de Movimentos
 - ✅ Movimentos de Ativos: atribuição e devolução de equipamentos/viaturas
