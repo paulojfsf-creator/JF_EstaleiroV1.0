@@ -117,6 +117,11 @@ export default function EquipamentoDetail() {
                     <Badge variant="outline" className={`${isDark ? 'border-neutral-600' : 'border-gray-300'} ${equipamento.estado_conservacao === "Bom" ? "text-emerald-500" : equipamento.estado_conservacao === "Razoável" ? "text-amber-500" : "text-red-500"}`}>
                       {equipamento.estado_conservacao}
                     </Badge>
+                    {equipamento.em_manutencao && (
+                      <Badge className="bg-amber-500/20 text-amber-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" /> Em Manutenção
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
