@@ -342,6 +342,25 @@ async def upload_file(file: UploadFile = File(...), user=Depends(get_current_use
     
     return {"url": f"/api/uploads/{filename}", "filename": filename}
 
+@api_router.post("/upload/pdf")
+async def upload_pdf(file: UploadFile = File(...), user=Depends(get_current_user)):
+    """Upload PDF documents (manuals, certificates, etc.)"""
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Apenas ficheiros PDF são permitidos")
+    
+    # Max 10MB
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Ficheiro demasiado grande (máx. 10MB)")
+    
+    filename = f"{uuid.uuid4()}.pdf"
+    filepath = UPLOAD_DIR / filename
+    
+    with open(filepath, "wb") as f:
+        f.write(content)
+    
+    return {"url": f"/api/uploads/{filename}", "filename": filename, "original_name": file.filename}
+
 @api_router.get("/uploads/{filename}")
 async def get_upload(filename: str):
     filepath = UPLOAD_DIR / filename
@@ -349,7 +368,10 @@ async def get_upload(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     
     ext = filename.split(".")[-1].lower()
-    content_types = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "gif": "image/gif", "webp": "image/webp"}
+    content_types = {
+        "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", 
+        "gif": "image/gif", "webp": "image/webp", "pdf": "application/pdf"
+    }
     
     with open(filepath, "rb") as f:
         content = f.read()
