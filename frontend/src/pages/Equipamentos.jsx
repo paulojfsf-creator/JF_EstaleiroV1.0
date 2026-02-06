@@ -35,6 +35,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "@/components/ImageUpload";
+import PdfUpload from "@/components/PdfUpload";
 
 const estadoOptions = ["Bom", "Razoável", "Mau"];
 
