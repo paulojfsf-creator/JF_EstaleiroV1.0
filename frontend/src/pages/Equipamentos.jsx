@@ -473,16 +473,16 @@ export default function Equipamentos() {
                 </h4>
               </div>
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Manual de Utilizador (URL)</Label>
-                <Input value={formData.manual_url} onChange={(e) => setFormData({...formData, manual_url: e.target.value})} placeholder="https://..." className={inputClass} />
+                <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Manual de Utilizador</Label>
+                <PdfUpload value={formData.manual_url} onChange={(url) => setFormData({...formData, manual_url: url})} label="Carregar Manual (PDF)" isDark={isDark} />
               </div>
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Certificado de Conformidade (URL)</Label>
-                <Input value={formData.certificado_url} onChange={(e) => setFormData({...formData, certificado_url: e.target.value})} placeholder="https://..." className={inputClass} />
+                <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Certificado de Conformidade</Label>
+                <PdfUpload value={formData.certificado_url} onChange={(url) => setFormData({...formData, certificado_url: url})} label="Carregar Certificado (PDF)" isDark={isDark} />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Ficha de Manutenção (URL)</Label>
-                <Input value={formData.ficha_manutencao_url} onChange={(e) => setFormData({...formData, ficha_manutencao_url: e.target.value})} placeholder="https://..." className={inputClass} />
+                <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Ficha de Manutenção</Label>
+                <PdfUpload value={formData.ficha_manutencao_url} onChange={(url) => setFormData({...formData, ficha_manutencao_url: url})} label="Carregar Ficha (PDF)" isDark={isDark} />
               </div>
               
               {/* Secção de Manutenção/Avaria */}
