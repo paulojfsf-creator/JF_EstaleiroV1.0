@@ -175,7 +175,12 @@ export default function Equipamentos() {
       numero_serie: item.numero_serie || "",
       estado_conservacao: item.estado_conservacao || "Bom",
       foto: item.foto || "",
-      obra_id: item.obra_id || ""
+      obra_id: item.obra_id || "",
+      manual_url: item.manual_url || "",
+      certificado_url: item.certificado_url || "",
+      ficha_manutencao_url: item.ficha_manutencao_url || "",
+      em_manutencao: item.em_manutencao ?? false,
+      descricao_avaria: item.descricao_avaria || ""
     });
     setDialogOpen(true);
   };
