@@ -203,11 +203,17 @@ export default function Equipamentos() {
     });
   };
 
-  const filtered = equipamentos.filter(e => 
-    e.codigo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.marca?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = equipamentos.filter(e => {
+    const search = searchTerm.toLowerCase();
+    return (
+      e.codigo?.toLowerCase().includes(search) ||
+      e.descricao?.toLowerCase().includes(search) ||
+      e.marca?.toLowerCase().includes(search) ||
+      e.modelo?.toLowerCase().includes(search) ||
+      e.categoria?.toLowerCase().includes(search) ||
+      e.numero_serie?.toLowerCase().includes(search)
+    );
+  });
 
   const getObraName = (obraId) => {
     const obra = obras.find(o => o.id === obraId);
