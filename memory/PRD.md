@@ -156,8 +156,14 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 ## 7. Próximos Passos (Backlog)
 
 ### P1 - Prioritário:
-- [ ] Relatórios avançados filtráveis por mês e por obra (ex: "material gasto na obra X em janeiro")
-  - Novos endpoints no backend com agregações MongoDB
+- [ ] Dashboard com gráficos de utilização
+- [ ] Códigos de barras/QR codes para equipamentos
+- [ ] Notificações push no browser
+
+### P2 - Futuro:
+- [ ] Histórico de manutenções para equipamentos e viaturas
+- [ ] Relatórios personalizáveis por período
+- [ ] Gestão de utilizadores e permissões
   - Nova UI com filtros na página de Relatórios
 
 ### P2 - Futuro:
