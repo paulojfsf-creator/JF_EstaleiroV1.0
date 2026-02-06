@@ -112,13 +112,30 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 
 ## 5. O Que Foi Implementado
 
-### Sessão 30/01/2026 (Atual):
+### Sessão 06/02/2026 (Atual):
+1. ✅ **Relatórios Avançados**: Nova página com filtros por obra, mês e ano
+   - Relatório de Movimentos de Ativos (equipamentos e viaturas)
+   - Relatório de Consumo de Materiais (stock)
+   - Relatório específico por Obra
+2. ✅ **PWA (Progressive Web App)**: Aplicação pode ser instalada no telemóvel
+   - manifest.json com ícones e configurações
+   - Service worker para funcionamento offline básico
+   - Meta tags para iOS e Android
+3. ✅ **Página de Detalhe da Obra melhorada**:
+   - Linhas clicáveis na lista de obras
+   - Botão "Atribuir Equipamento" diretamente na página da obra
+   - Botão "Atribuir Viatura" diretamente na página da obra
+   - Botão "Movimento de Material" para registar consumo de stock
+   - Tabs para ver equipamentos e viaturas atribuídos
+   - Botão "Devolver" em cada recurso atribuído
+
+### Sessão 30/01/2026:
 1. ✅ Coluna "Foto" como primeira coluna na tabela de Viaturas
 2. ✅ Nome da obra exibido no histórico de movimentos (Equipamentos e Viaturas)
 3. ✅ Correção de cores dos inputs no modo claro (texto legível)
 4. ✅ Backend enriquece movimentos com obra_nome e obra_codigo
 
-### Sessão Anterior:
+### Sessões Anteriores:
 1. ✅ Lançamento direto para obra nas páginas de Equipamentos/Viaturas/Materiais
 2. ✅ Ficha de detalhe ao clicar na linha (linhas clicáveis)
 3. ✅ Ficha de detalhe para Materiais (nova)
@@ -127,17 +144,10 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 6. ✅ Cards responsivos para mobile em vez de tabelas
 7. ✅ Menu lateral responsivo com hamburger para mobile
 8. ✅ Coluna "Foto" como primeira coluna na tabela de Equipamentos
-
-### Sessões Anteriores:
-1. ✅ Nova identidade visual com logótipo José Firmino
-2. ✅ Tema escuro com cores preto, cinza e laranja
-3. ✅ Remoção completa da entidade "Locais"
-4. ✅ Associação direta de recursos a "Obras"
-5. ✅ Fichas de detalhe para equipamentos com histórico de movimentos
-6. ✅ Fichas de detalhe para viaturas com histórico de movimentos e KMs
-7. ✅ Sistema de movimentos (atribuir/devolver) com validação
-8. ✅ Funcionalidade de Import/Export de dados (Excel e PDF)
-9. ✅ Validação de dupla atribuição de recursos
+9. ✅ Nova identidade visual com logótipo José Firmino
+10. ✅ Remoção completa da entidade "Locais"
+11. ✅ Sistema de movimentos (atribuir/devolver) com validação
+12. ✅ Funcionalidade de Import/Export de dados (Excel e PDF)
 
 ## 6. Credenciais de Teste
 - **Email**: test@test.com
