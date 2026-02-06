@@ -204,7 +204,7 @@ export default function EquipamentoDetail() {
               </CardHeader>
               <CardContent>
                 <p className={isDark ? 'text-neutral-300' : 'text-gray-700'}>
-                  {equipamento.descricao_avaria || "Sem descrição da avaria"}
+                  {equipamento.descricao_avaria || 'Sem descrição da avaria'}
                 </p>
               </CardContent>
             </Card>
