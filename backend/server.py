@@ -80,6 +80,12 @@ class EquipamentoCreate(BaseModel):
     estado_conservacao: str = "Bom"
     foto: str = ""
     obra_id: Optional[str] = None
+    # Novos campos
+    manual_url: str = ""
+    certificado_url: str = ""
+    ficha_manutencao_url: str = ""
+    em_manutencao: bool = False
+    descricao_avaria: str = ""
 
 class Equipamento(EquipamentoCreate):
     model_config = ConfigDict(extra="ignore")
