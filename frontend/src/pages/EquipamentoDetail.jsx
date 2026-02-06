@@ -192,6 +192,75 @@ export default function EquipamentoDetail() {
               )}
             </CardContent>
           </Card>
+
+          {/* Avaria / Em Manutenção */}
+          {equipamento.em_manutencao && (
+            <Card className={`mt-6 border-amber-500/30 ${isDark ? 'bg-amber-500/5' : 'bg-amber-50'}`}>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-amber-500">
+                  <AlertTriangle className="h-5 w-5" />
+                  Em Manutenção / Avariado
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className={isDark ? 'text-neutral-300' : 'text-gray-700'}>
+                  {equipamento.descricao_avaria || "Sem descrição da avaria"}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Documentação */}
+          {(equipamento.manual_url || equipamento.certificado_url || equipamento.ficha_manutencao_url) && (
+            <Card className={`mt-6 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}`}>
+              <CardHeader>
+                <CardTitle className={`text-lg flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <FileText className="h-5 w-5 text-orange-500" />
+                  Documentação
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {equipamento.manual_url && (
+                    <a 
+                      href={equipamento.manual_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${isDark ? 'bg-neutral-700/50 border-neutral-600 hover:bg-neutral-700' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                    >
+                      <FileText className="h-5 w-5 text-blue-500" />
+                      <span className={`flex-1 ${isDark ? 'text-neutral-200' : 'text-gray-700'}`}>Manual de Utilizador</span>
+                      <ExternalLink className={`h-4 w-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                    </a>
+                  )}
+                  {equipamento.certificado_url && (
+                    <a 
+                      href={equipamento.certificado_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${isDark ? 'bg-neutral-700/50 border-neutral-600 hover:bg-neutral-700' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                    >
+                      <FileText className="h-5 w-5 text-emerald-500" />
+                      <span className={`flex-1 ${isDark ? 'text-neutral-200' : 'text-gray-700'}`}>Certificado de Conformidade</span>
+                      <ExternalLink className={`h-4 w-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                    </a>
+                  )}
+                  {equipamento.ficha_manutencao_url && (
+                    <a 
+                      href={equipamento.ficha_manutencao_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${isDark ? 'bg-neutral-700/50 border-neutral-600 hover:bg-neutral-700' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                    >
+                      <FileText className="h-5 w-5 text-amber-500" />
+                      <span className={`flex-1 ${isDark ? 'text-neutral-200' : 'text-gray-700'}`}>Ficha de Manutenção</span>
+                      <ExternalLink className={`h-4 w-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                    </a>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Histórico de Movimentos */}
