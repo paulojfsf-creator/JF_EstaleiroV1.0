@@ -284,7 +284,7 @@ export default function Equipamentos() {
                 {filtered.map((item) => (
                   <tr 
                     key={item.id} 
-                    className={`border-b cursor-pointer transition-colors ${isDark ? 'border-neutral-700/50 hover:bg-neutral-700/30' : 'border-gray-100 hover:bg-gray-50'}`}
+                    className={`border-b cursor-pointer transition-colors ${item.em_manutencao ? (isDark ? 'bg-amber-500/5' : 'bg-amber-50') : ''} ${isDark ? 'border-neutral-700/50 hover:bg-neutral-700/30' : 'border-gray-100 hover:bg-gray-50'}`}
                     onClick={() => navigate(`/equipamentos/${item.id}`)}
                     data-testid={`equipamento-row-${item.id}`}
                   >
@@ -303,7 +303,16 @@ export default function Equipamentos() {
                       )}
                     </td>
                     <td className="py-3 px-4 font-mono text-sm text-orange-500">{item.codigo}</td>
-                    <td className={`py-3 px-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.descricao}</td>
+                    <td className={`py-3 px-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <div className="flex items-center gap-2">
+                        {item.descricao}
+                        {item.em_manutencao && (
+                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/20 text-amber-500 flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3" /> Avariado
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className={`py-3 px-4 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{item.marca} {item.modelo}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${item.estado_conservacao === "Bom" ? "bg-emerald-500/20 text-emerald-500" : item.estado_conservacao === "Razoável" ? "bg-amber-500/20 text-amber-500" : "bg-red-500/20 text-red-500"}`}>
@@ -321,7 +330,7 @@ export default function Equipamentos() {
                       )}
                     </td>
                     <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      {!item.obra_id && item.ativo ? (
+                      {!item.obra_id && item.ativo && !item.em_manutencao ? (
                         <Button variant="ghost" size="sm" onClick={(e) => openAtribuirDialog(item, e)} className="text-orange-500 hover:text-orange-400 hover:bg-orange-500/10" data-testid={`atribuir-${item.id}`}>
                           <ArrowRight className="h-4 w-4 mr-1" /> Obra
                         </Button>
