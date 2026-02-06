@@ -1,0 +1,89 @@
+{
+  "summary": "Completed comprehensive testing of new Equipamento fields (documentation URLs, maintenance status). All features working correctly. Backend API accepts and returns all new fields. Frontend form shows new sections (Documentação, Estado de Manutenção). Switch behavior works correctly - Descrição da Avaria field appears when switch is activated. Table shows 'Avariado' badge for equipamentos em manutenção. Detail page shows documentation links and maintenance section.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend: POST /api/equipamentos accepts new fields (manual_url, certificado_url, ficha_manutencao_url, em_manutencao, descricao_avaria)",
+    "Backend: PUT /api/equipamentos/{id} updates new fields correctly",
+    "Backend: GET /api/equipamentos/{id} returns all new fields",
+    "Backend: GET /api/equipamentos list includes new fields",
+    "Frontend Equipamentos.jsx: Form shows 'Documentação' section with 3 URL fields",
+    "Frontend Equipamentos.jsx: Form shows 'Estado de Manutenção' section with switch",
+    "Frontend Equipamentos.jsx: 'Descrição da Avaria' field appears when switch is activated",
+    "Frontend Equipamentos.jsx: 'Descrição da Avaria' field hidden when switch is off",
+    "Frontend Equipamentos.jsx: Table shows 'Avariado' badge for equipamentos em manutenção",
+    "Frontend Equipamentos.jsx: Search works by código",
+    "Frontend Equipamentos.jsx: Search works by descrição",
+    "Frontend Equipamentos.jsx: Search works by marca",
+    "Frontend Equipamentos.jsx: Search works by modelo",
+    "Frontend EquipamentoDetail.jsx: Shows 'Em Manutenção / Avariado' section with description",
+    "Frontend EquipamentoDetail.jsx: Shows 'Documentação' section with clickable links",
+    "Frontend EquipamentoDetail.jsx: Shows 'Em Manutenção' badge in header"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_equipamento_new_fields.py",
+    "/app/test_reports/pytest/pytest_equipamento_new_fields.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_equipamento_new_fields.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10 passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test123"
+  },
+  "seed_data_creation": "Created test equipamentos with new fields during testing, cleaned up after tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "New Equipamento fields fully tested. The model now includes: manual_url, certificado_url, ficha_manutencao_url (documentation URLs), em_manutencao (boolean), descricao_avaria (string). Form has two new sections: 'Documentação' and 'Estado de Manutenção'. The switch controls visibility of the avaria description field. Table shows 'Avariado' badge. Detail page shows documentation links and maintenance info.",
+  "test_details": {
+    "backend_tests": {
+      "total_tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "endpoints_tested": [
+        "POST /api/equipamentos (with new fields)",
+        "PUT /api/equipamentos/{id} (update new fields)",
+        "GET /api/equipamentos/{id} (returns new fields)",
+        "GET /api/equipamentos (list includes new fields)"
+      ]
+    },
+    "frontend_tests": {
+      "equipamentos_page": {
+        "form_documentacao_section": true,
+        "form_estado_manutencao_section": true,
+        "switch_shows_avaria_field": true,
+        "table_avariado_badge": true,
+        "search_by_codigo": true,
+        "search_by_descricao": true,
+        "search_by_marca": true,
+        "search_by_modelo": true
+      },
+      "equipamento_detail_page": {
+        "em_manutencao_section": true,
+        "documentacao_section": true,
+        "documentation_links_clickable": true,
+        "em_manutencao_badge": true
+      }
+    },
+    "new_fields_tested": {
+      "manual_url": "URL field for user manual PDF",
+      "certificado_url": "URL field for conformity certificate PDF",
+      "ficha_manutencao_url": "URL field for maintenance sheet PDF",
+      "em_manutencao": "Boolean switch for maintenance/broken status",
+      "descricao_avaria": "Text field for describing the issue (only visible when em_manutencao is true)"
+    }
+  }
+}
