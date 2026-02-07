@@ -48,6 +48,7 @@ export default function EquipamentoDetail() {
   const [manutencaoDialog, setManutencaoDialog] = useState(false);
   const [descricaoAvaria, setDescricaoAvaria] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editingAvaria, setEditingAvaria] = useState(false);
 
   useEffect(() => {
     fetchData();
