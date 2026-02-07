@@ -397,6 +397,13 @@ async def get_equipamento(equipamento_id: str, user=Depends(get_current_user)):
     if not item:
         raise HTTPException(status_code=404, detail="Equipamento não encontrado")
     
+    # Garantir que os campos novos têm valores por defeito
+    item.setdefault("em_manutencao", False)
+    item.setdefault("descricao_avaria", "")
+    item.setdefault("manual_url", "")
+    item.setdefault("certificado_url", "")
+    item.setdefault("ficha_manutencao_url", "")
+    
     # Get obra info if assigned
     obra = None
     if item.get("obra_id"):
