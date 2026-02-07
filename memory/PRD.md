@@ -187,21 +187,18 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 
 ## 7. Próximos Passos (Backlog)
 
+### P0 - Imediato:
+- [x] Melhorias no módulo de Viaturas (documentação, manutenção, alertas) ✅ CONCLUÍDO
+
 ### P1 - Prioritário:
+- [ ] Alertas automáticos por email para expiração de documentos (seguro, IPO) usando Resend
 - [ ] Dashboard com gráficos de utilização
-- [ ] Códigos de barras/QR codes para equipamentos
+- [ ] Códigos de barras/QR codes para equipamentos e viaturas
 - [ ] Notificações push no browser
 
 ### P2 - Futuro:
-- [ ] Histórico de manutenções para equipamentos e viaturas
+- [ ] Controlo de quilómetros detalhado para viaturas (registo em cada movimento)
+- [ ] Histórico completo de manutenções (avarias passadas, custos, tempo de inatividade)
 - [ ] Relatórios personalizáveis por período
 - [ ] Gestão de utilizadores e permissões
-  - Nova UI com filtros na página de Relatórios
-
-### P2 - Futuro:
-- [ ] Progressive Web App (PWA) - Permitir instalação no telemóvel
-- [ ] Dashboard com gráficos de utilização
-- [ ] Relatórios personalizáveis por período
-- [ ] Códigos de barras/QR codes para equipamentos
-- [ ] Notificações push no browser
-- [ ] Histórico de manutenções para equipamentos e viaturas
+- [ ] Refatoração do server.py em múltiplos ficheiros de rotas
