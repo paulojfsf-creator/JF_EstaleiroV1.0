@@ -132,7 +132,19 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
 
 ## 5. O Que Foi Implementado
 
-### Sessão 06/02/2026 (Atual):
+### Sessão 07/02/2026 (Atual):
+1. ✅ **Melhorias no Módulo de Viaturas** - Funcionalidades equivalentes ao módulo de Equipamentos:
+   - Upload de PDFs para documentação (DUA, Seguro, IPO, Carta Verde, Manual)
+   - Estado de manutenção/oficina com descrição da avaria
+   - Botão "Marcar em Oficina" direto na página de detalhe (sem entrar em edição)
+   - Botão "Marcar Disponível" para reverter estado
+   - Editor inline da descrição da avaria com ícone de edição
+   - Indicadores de estado com cores (verde/laranja/vermelho)
+   - Datas de expiração com alertas visuais (Seguro, IPO, Revisão, Vistoria)
+   - Barra de progresso para quilometragem até próxima revisão
+   - Secção de documentação com links para PDFs carregados
+
+### Sessão 06/02/2026:
 1. ✅ **Relatórios Avançados**: Nova página com filtros por obra, mês e ano
    - Relatório de Movimentos de Ativos (equipamentos e viaturas)
    - Relatório de Consumo de Materiais (stock)
