@@ -483,9 +483,26 @@ async def delete_equipamento(equipamento_id: str, user=Depends(get_current_user)
     return {"message": "Equipamento eliminado"}
 
 # ==================== VIATURA ROUTES ====================
+def set_viatura_defaults(item):
+    """Garantir valores por defeito nos campos novos"""
+    item.setdefault("em_manutencao", False)
+    item.setdefault("descricao_avaria", "")
+    item.setdefault("dua_url", "")
+    item.setdefault("seguro_url", "")
+    item.setdefault("ipo_url", "")
+    item.setdefault("carta_verde_url", "")
+    item.setdefault("manual_url", "")
+    item.setdefault("data_ipo", None)
+    item.setdefault("data_proxima_revisao", None)
+    item.setdefault("kms_atual", 0)
+    item.setdefault("kms_proxima_revisao", 0)
+    return item
+
 @api_router.get("/viaturas")
 async def get_viaturas(user=Depends(get_current_user)):
     items = await db.viaturas.find({}, {"_id": 0}).to_list(1000)
+    for item in items:
+        set_viatura_defaults(item)
     return items
 
 @api_router.get("/viaturas/{viatura_id}")
@@ -493,6 +510,8 @@ async def get_viatura(viatura_id: str, user=Depends(get_current_user)):
     item = await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
     if not item:
         raise HTTPException(status_code=404, detail="Viatura não encontrada")
+    
+    set_viatura_defaults(item)
     
     obra = None
     if item.get("obra_id"):
@@ -515,7 +534,58 @@ async def get_viatura(viatura_id: str, user=Depends(get_current_user)):
         {"viatura_id": viatura_id}, {"_id": 0}
     ).sort("created_at", -1).to_list(100)
     
-    return {"viatura": item, "obra_atual": obra, "historico": movimentos, "km_historico": km_movimentos}
+    # Calcular alertas
+    alertas = []
+    from datetime import datetime, timedelta
+    hoje = datetime.now()
+    
+    # Alerta seguro
+    if item.get("data_seguro"):
+        try:
+            data_seg = datetime.fromisoformat(item["data_seguro"].replace("Z", "+00:00"))
+            dias_seguro = (data_seg - hoje).days
+            if dias_seguro <= 30:
+                alertas.append({"tipo": "seguro", "mensagem": f"Seguro expira em {dias_seguro} dias", "urgente": dias_seguro <= 7})
+        except: pass
+    
+    # Alerta IPO
+    if item.get("data_ipo"):
+        try:
+            data_ipo = datetime.fromisoformat(item["data_ipo"].replace("Z", "+00:00"))
+            dias_ipo = (data_ipo - hoje).days
+            if dias_ipo <= 30:
+                alertas.append({"tipo": "ipo", "mensagem": f"IPO expira em {dias_ipo} dias", "urgente": dias_ipo <= 7})
+        except: pass
+    
+    # Alerta revisão por data
+    if item.get("data_proxima_revisao"):
+        try:
+            data_rev = datetime.fromisoformat(item["data_proxima_revisao"].replace("Z", "+00:00"))
+            dias_rev = (data_rev - hoje).days
+            if dias_rev <= 30:
+                alertas.append({"tipo": "revisao", "mensagem": f"Revisão em {dias_rev} dias", "urgente": dias_rev <= 7})
+        except: pass
+    
+    # Alerta revisão por KMs
+    if item.get("kms_proxima_revisao") and item.get("kms_atual"):
+        kms_faltam = item["kms_proxima_revisao"] - item["kms_atual"]
+        if kms_faltam <= 1000 and kms_faltam > 0:
+            alertas.append({"tipo": "kms", "mensagem": f"Revisão em {kms_faltam} km", "urgente": kms_faltam <= 500})
+    
+    return {"viatura": item, "obra_atual": obra, "historico": movimentos, "km_historico": km_movimentos, "alertas": alertas}
+
+@api_router.patch("/viaturas/{viatura_id}/manutencao")
+async def update_viatura_manutencao(viatura_id: str, data: ManutencaoUpdate, user=Depends(get_current_user)):
+    """Atualizar estado de manutenção de uma viatura (sem editar outros campos)"""
+    existing = await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Viatura não encontrada")
+    
+    update_data = {"em_manutencao": data.em_manutencao, "descricao_avaria": data.descricao_avaria}
+    await db.viaturas.update_one({"id": viatura_id}, {"$set": update_data})
+    
+    updated = await db.viaturas.find_one({"id": viatura_id}, {"_id": 0})
+    return updated
 
 @api_router.post("/viaturas")
 async def create_viatura(data: ViaturaCreate, user=Depends(get_current_user)):
