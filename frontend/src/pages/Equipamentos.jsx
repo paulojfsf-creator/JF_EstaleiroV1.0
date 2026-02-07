@@ -366,7 +366,7 @@ export default function Equipamentos() {
             {filtered.map((item) => (
               <div 
                 key={item.id}
-                className={`p-4 rounded-lg border cursor-pointer ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}`}
+                className={`p-4 rounded-lg border cursor-pointer ${item.em_manutencao ? (isDark ? 'bg-red-500/5 border-red-500/30' : 'bg-red-50 border-red-200') : isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}`}
                 onClick={() => navigate(`/equipamentos/${item.id}`)}
                 data-testid={`equipamento-card-${item.id}`}
               >
@@ -385,29 +385,51 @@ export default function Equipamentos() {
                   )}
                   <div className="flex-1 min-w-0">
                     <span className="font-mono text-sm text-orange-500">{item.codigo}</span>
-                    <h3 className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.descricao}</h3>
+                    <h3 className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {item.descricao}
+                      {item.em_manutencao && (
+                        <span className="ml-2 px-2 py-0.5 rounded text-xs font-medium bg-red-500/20 text-red-500">
+                          Avariado
+                        </span>
+                      )}
+                    </h3>
                     <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{item.marca} {item.modelo}</p>
                   </div>
                   <span className={`px-2 py-1 rounded text-xs font-medium h-fit ${item.estado_conservacao === "Bom" ? "bg-emerald-500/20 text-emerald-500" : item.estado_conservacao === "Razoável" ? "bg-amber-500/20 text-amber-500" : "bg-red-500/20 text-red-500"}`}>
                     {item.estado_conservacao}
                   </span>
                 </div>
-                <div className={`text-sm mb-3 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                  {item.obra_id ? (
-                    <span className="flex items-center gap-1 text-orange-500">
+                {/* Estado com cores */}
+                <div className="text-sm mb-3">
+                  {item.em_manutencao ? (
+                    <span className="flex items-center gap-1 text-red-500 font-medium">
+                      <AlertTriangle className="h-3 w-3" />
+                      Em Manutenção
+                    </span>
+                  ) : item.obra_id ? (
+                    <span className="flex items-center gap-1 text-orange-500 font-medium">
                       <Building2 className="h-3 w-3" />
                       {getObraName(item.obra_id)}
                     </span>
-                  ) : "Em armazém"}
+                  ) : (
+                    <span className="flex items-center gap-1 text-emerald-500 font-medium">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                      Em armazém
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                  {!item.obra_id && item.ativo ? (
+                  {!item.obra_id && item.ativo && !item.em_manutencao ? (
                     <Button size="sm" onClick={(e) => openAtribuirDialog(item, e)} className="bg-orange-500 hover:bg-orange-600 text-black text-xs flex-1">
                       <ArrowRight className="h-3 w-3 mr-1" /> Atribuir a Obra
                     </Button>
                   ) : item.obra_id ? (
                     <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); handleDevolver(item); }} className="text-emerald-500 border-emerald-500 hover:bg-emerald-500/10 text-xs flex-1">
                       Devolver
+                    </Button>
+                  ) : item.em_manutencao ? (
+                    <Button size="sm" variant="outline" className="text-red-500 border-red-500/50 text-xs flex-1 pointer-events-none">
+                      <AlertTriangle className="h-3 w-3 mr-1" /> Em Oficina
                     </Button>
                   ) : null}
                   <Button size="sm" variant="outline" onClick={(e) => openEditDialog(item, e)} className={`text-xs ${isDark ? 'border-neutral-600' : 'border-gray-300'}`}>
