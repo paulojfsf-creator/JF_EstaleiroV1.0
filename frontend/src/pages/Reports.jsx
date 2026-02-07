@@ -1,17 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth, useTheme, API } from "@/App";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { 
   FileText, Download, FileSpreadsheet, Upload, Filter, 
   Building2, Calendar, TrendingDown, TrendingUp, Package,
-  Truck, Wrench, BarChart3, ArrowRightLeft
+  Truck, Wrench, BarChart3, ArrowRightLeft, AlertTriangle,
+  CheckCircle, Clock, Bell, Gauge, Shield, Search, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 const meses = [
   { value: "1", label: "Janeiro" },
@@ -45,15 +48,25 @@ export default function Reports() {
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
   
-  // Filtros
+  // Filtros gerais
   const [filtroObra, setFiltroObra] = useState("");
   const [filtroMes, setFiltroMes] = useState("");
   const [filtroAno, setFiltroAno] = useState(String(new Date().getFullYear()));
+  const [filtroTipoRecurso, setFiltroTipoRecurso] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroDataInicio, setFiltroDataInicio] = useState("");
+  const [filtroDataFim, setFiltroDataFim] = useState("");
   
   // Dados dos relatórios
   const [relatorioMovimentos, setRelatorioMovimentos] = useState(null);
   const [relatorioStock, setRelatorioStock] = useState(null);
   const [relatorioObra, setRelatorioObra] = useState(null);
+  const [relatorioManutencoes, setRelatorioManutencoes] = useState(null);
+  const [relatorioAlertas, setRelatorioAlertas] = useState(null);
+  const [relatorioUtilizacao, setRelatorioUtilizacao] = useState(null);
+  
+  // Tab ativa
+  const [activeTab, setActiveTab] = useState("movimentos");
 
   useEffect(() => {
     fetchInitialData();
@@ -79,6 +92,7 @@ export default function Reports() {
       if (filtroObra && filtroObra !== "all") params.append("obra_id", filtroObra);
       if (filtroMes && filtroMes !== "all") params.append("mes", filtroMes);
       if (filtroAno) params.append("ano", filtroAno);
+      if (filtroTipoRecurso && filtroTipoRecurso !== "all") params.append("tipo_recurso", filtroTipoRecurso);
       
       const response = await axios.get(`${API}/relatorios/movimentos?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -127,6 +141,61 @@ export default function Reports() {
       setRelatorioObra(response.data);
     } catch (error) {
       toast.error("Erro ao carregar relatório da obra");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRelatorioManutencoes = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filtroTipoRecurso && filtroTipoRecurso !== "all") params.append("tipo_recurso", filtroTipoRecurso);
+      
+      const response = await axios.get(`${API}/relatorios/manutencoes?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRelatorioManutencoes(response.data);
+    } catch (error) {
+      toast.error("Erro ao carregar relatório de manutenções");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRelatorioAlertas = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filtroTipoRecurso && filtroTipoRecurso !== "all") params.append("tipo_recurso", filtroTipoRecurso);
+      params.append("dias_antecedencia", "30");
+      
+      const response = await axios.get(`${API}/relatorios/alertas?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRelatorioAlertas(response.data);
+    } catch (error) {
+      toast.error("Erro ao carregar relatório de alertas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRelatorioUtilizacao = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filtroTipoRecurso && filtroTipoRecurso !== "all") params.append("tipo_recurso", filtroTipoRecurso);
+      if (filtroEstado && filtroEstado !== "all") params.append("estado", filtroEstado);
+      if (filtroDataInicio) params.append("data_inicio", filtroDataInicio);
+      if (filtroDataFim) params.append("data_fim", filtroDataFim);
+      
+      const response = await axios.get(`${API}/relatorios/utilizacao?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRelatorioUtilizacao(response.data);
+    } catch (error) {
+      toast.error("Erro ao carregar relatório de utilização");
     } finally {
       setLoading(false);
     }
@@ -235,9 +304,39 @@ export default function Reports() {
     } catch { return dateStr; }
   };
 
+  const formatDateSimple = (dateStr) => {
+    if (!dateStr) return "-";
+    try {
+      return new Date(dateStr).toLocaleDateString("pt-PT");
+    } catch { return dateStr; }
+  };
+
   const getObraNome = (obraId) => {
     const obra = obras.find(o => o.id === obraId);
     return obra ? obra.nome : "-";
+  };
+
+  const getEstadoBadge = (estado) => {
+    switch (estado) {
+      case "disponivel":
+        return <Badge className="bg-emerald-500/20 text-emerald-500"><CheckCircle className="h-3 w-3 mr-1" />Disponível</Badge>;
+      case "em_obra":
+        return <Badge className="bg-orange-500/20 text-orange-500"><Building2 className="h-3 w-3 mr-1" />Em Obra</Badge>;
+      case "manutencao":
+        return <Badge className="bg-red-500/20 text-red-500"><AlertTriangle className="h-3 w-3 mr-1" />Manutenção</Badge>;
+      default:
+        return <Badge variant="secondary">-</Badge>;
+    }
+  };
+
+  const limparFiltros = () => {
+    setFiltroObra("");
+    setFiltroMes("");
+    setFiltroAno(String(new Date().getFullYear()));
+    setFiltroTipoRecurso("");
+    setFiltroEstado("");
+    setFiltroDataInicio("");
+    setFiltroDataFim("");
   };
 
   return (
@@ -262,16 +361,78 @@ export default function Reports() {
 
         {/* TAB: Relatórios Avançados */}
         <TabsContent value="avancados" className="space-y-6">
+          {/* Seleção de Tipo de Relatório */}
+          <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                <Button 
+                  onClick={() => { setActiveTab("movimentos"); fetchRelatorioMovimentos(); }}
+                  variant={activeTab === "movimentos" ? "default" : "outline"}
+                  className={activeTab === "movimentos" ? "bg-orange-500 hover:bg-orange-600 text-black" : (isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "")}
+                  data-testid="btn-relatorio-movimentos"
+                >
+                  <ArrowRightLeft className="h-4 w-4 mr-2" /> Movimentos
+                </Button>
+                <Button 
+                  onClick={() => { setActiveTab("stock"); fetchRelatorioStock(); }}
+                  variant={activeTab === "stock" ? "default" : "outline"}
+                  className={activeTab === "stock" ? "bg-orange-500 hover:bg-orange-600 text-black" : (isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "")}
+                  data-testid="btn-relatorio-stock"
+                >
+                  <Package className="h-4 w-4 mr-2" /> Materiais
+                </Button>
+                <Button 
+                  onClick={() => { setActiveTab("manutencoes"); fetchRelatorioManutencoes(); }}
+                  variant={activeTab === "manutencoes" ? "default" : "outline"}
+                  className={activeTab === "manutencoes" ? "bg-orange-500 hover:bg-orange-600 text-black" : (isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "")}
+                  data-testid="btn-relatorio-manutencoes"
+                >
+                  <Wrench className="h-4 w-4 mr-2" /> Manutenções
+                </Button>
+                <Button 
+                  onClick={() => { setActiveTab("alertas"); fetchRelatorioAlertas(); }}
+                  variant={activeTab === "alertas" ? "default" : "outline"}
+                  className={activeTab === "alertas" ? "bg-orange-500 hover:bg-orange-600 text-black" : (isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "")}
+                  data-testid="btn-relatorio-alertas"
+                >
+                  <Bell className="h-4 w-4 mr-2" /> Alertas
+                </Button>
+                <Button 
+                  onClick={() => { setActiveTab("utilizacao"); fetchRelatorioUtilizacao(); }}
+                  variant={activeTab === "utilizacao" ? "default" : "outline"}
+                  className={activeTab === "utilizacao" ? "bg-orange-500 hover:bg-orange-600 text-black" : (isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "")}
+                  data-testid="btn-relatorio-utilizacao"
+                >
+                  <Gauge className="h-4 w-4 mr-2" /> Utilização
+                </Button>
+                <Button 
+                  onClick={() => { if (filtroObra && filtroObra !== "all") { setActiveTab("obra"); fetchRelatorioObra(); } else { toast.error("Selecione uma obra primeiro"); } }}
+                  variant={activeTab === "obra" ? "default" : "outline"}
+                  className={activeTab === "obra" ? "bg-orange-500 hover:bg-orange-600 text-black" : (isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "")}
+                  data-testid="btn-relatorio-obra"
+                >
+                  <Building2 className="h-4 w-4 mr-2" /> Por Obra
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Filtros */}
           <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
             <CardHeader className="pb-4">
-              <CardTitle className={`text-lg flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                <Filter className="h-5 w-5 text-orange-500" />
-                Filtros
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className={`text-lg flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <Filter className="h-5 w-5 text-orange-500" />
+                  Filtros
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={limparFiltros} className={isDark ? 'text-neutral-400 hover:text-white' : ''}>
+                  <RefreshCw className="h-4 w-4 mr-1" /> Limpar
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Filtro por Obra */}
                 <div>
                   <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Obra</label>
                   <Select value={filtroObra} onValueChange={setFiltroObra}>
@@ -288,52 +449,124 @@ export default function Reports() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Filtro por Tipo de Recurso */}
                 <div>
-                  <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Mês</label>
-                  <Select value={filtroMes} onValueChange={setFiltroMes}>
+                  <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Tipo de Recurso</label>
+                  <Select value={filtroTipoRecurso} onValueChange={setFiltroTipoRecurso}>
                     <SelectTrigger className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : 'bg-white border-gray-300 text-gray-900'}>
-                      <SelectValue placeholder="Todos os meses" />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
-                      <SelectItem value="all" className={isDark ? 'text-white' : 'text-gray-900'}>Todos os meses</SelectItem>
-                      {meses.map(m => (
-                        <SelectItem key={m.value} value={m.value} className={isDark ? 'text-white' : 'text-gray-900'}>{m.label}</SelectItem>
-                      ))}
+                      <SelectItem value="all" className={isDark ? 'text-white' : 'text-gray-900'}>Todos</SelectItem>
+                      <SelectItem value="equipamento" className={isDark ? 'text-white' : 'text-gray-900'}>
+                        <span className="flex items-center gap-2"><Wrench className="h-4 w-4" /> Equipamentos</span>
+                      </SelectItem>
+                      <SelectItem value="viatura" className={isDark ? 'text-white' : 'text-gray-900'}>
+                        <span className="flex items-center gap-2"><Truck className="h-4 w-4" /> Viaturas</span>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Filtro por Estado */}
                 <div>
-                  <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Ano</label>
-                  <Select value={filtroAno} onValueChange={setFiltroAno}>
+                  <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Estado</label>
+                  <Select value={filtroEstado} onValueChange={setFiltroEstado}>
                     <SelectTrigger className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : 'bg-white border-gray-300 text-gray-900'}>
-                      <SelectValue placeholder="Selecione o ano" />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
-                      {anos.map(a => (
-                        <SelectItem key={a.value} value={a.value} className={isDark ? 'text-white' : 'text-gray-900'}>{a.label}</SelectItem>
-                      ))}
+                      <SelectItem value="all" className={isDark ? 'text-white' : 'text-gray-900'}>Todos</SelectItem>
+                      <SelectItem value="disponivel" className={isDark ? 'text-white' : 'text-gray-900'}>
+                        <span className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-500" /> Disponível</span>
+                      </SelectItem>
+                      <SelectItem value="em_obra" className={isDark ? 'text-white' : 'text-gray-900'}>
+                        <span className="flex items-center gap-2"><Building2 className="h-4 w-4 text-orange-500" /> Em Obra</span>
+                      </SelectItem>
+                      <SelectItem value="manutencao" className={isDark ? 'text-white' : 'text-gray-900'}>
+                        <span className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-500" /> Manutenção</span>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-end gap-2">
-                  <Button onClick={fetchRelatorioMovimentos} disabled={loading} className="bg-orange-500 hover:bg-orange-600 text-black font-semibold flex-1">
-                    <ArrowRightLeft className="h-4 w-4 mr-2" /> Movimentos
-                  </Button>
+
+                {/* Filtro por Mês/Ano */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Mês</label>
+                    <Select value={filtroMes} onValueChange={setFiltroMes}>
+                      <SelectTrigger className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : 'bg-white border-gray-300 text-gray-900'}>
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
+                        <SelectItem value="all" className={isDark ? 'text-white' : 'text-gray-900'}>Todos</SelectItem>
+                        {meses.map(m => (
+                          <SelectItem key={m.value} value={m.value} className={isDark ? 'text-white' : 'text-gray-900'}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Ano</label>
+                    <Select value={filtroAno} onValueChange={setFiltroAno}>
+                      <SelectTrigger className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : 'bg-white border-gray-300 text-gray-900'}>
+                        <SelectValue placeholder="Ano" />
+                      </SelectTrigger>
+                      <SelectContent className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
+                        {anos.map(a => (
+                          <SelectItem key={a.value} value={a.value} className={isDark ? 'text-white' : 'text-gray-900'}>{a.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-2 mt-4">
-                <Button onClick={fetchRelatorioStock} disabled={loading} variant="outline" className={isDark ? 'border-neutral-600 text-neutral-300 hover:bg-neutral-700' : 'border-gray-300'}>
-                  <Package className="h-4 w-4 mr-2" /> Consumo de Materiais
-                </Button>
-                <Button onClick={fetchRelatorioObra} disabled={loading || !filtroObra || filtroObra === "all"} variant="outline" className={isDark ? 'border-neutral-600 text-neutral-300 hover:bg-neutral-700' : 'border-gray-300'}>
-                  <Building2 className="h-4 w-4 mr-2" /> Relatório da Obra
+
+              {/* Intervalo de Datas Personalizável */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Data Início</label>
+                  <Input 
+                    type="date" 
+                    value={filtroDataInicio} 
+                    onChange={(e) => setFiltroDataInicio(e.target.value)}
+                    className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : 'bg-white border-gray-300 text-gray-900'}
+                  />
+                </div>
+                <div>
+                  <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Data Fim</label>
+                  <Input 
+                    type="date" 
+                    value={filtroDataFim} 
+                    onChange={(e) => setFiltroDataFim(e.target.value)}
+                    className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : 'bg-white border-gray-300 text-gray-900'}
+                  />
+                </div>
+              </div>
+
+              {/* Botão de Aplicar */}
+              <div className="flex justify-end mt-4">
+                <Button 
+                  onClick={() => {
+                    if (activeTab === "movimentos") fetchRelatorioMovimentos();
+                    else if (activeTab === "stock") fetchRelatorioStock();
+                    else if (activeTab === "manutencoes") fetchRelatorioManutencoes();
+                    else if (activeTab === "alertas") fetchRelatorioAlertas();
+                    else if (activeTab === "utilizacao") fetchRelatorioUtilizacao();
+                    else if (activeTab === "obra") fetchRelatorioObra();
+                  }} 
+                  disabled={loading}
+                  className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
+                >
+                  <Search className="h-4 w-4 mr-2" /> Aplicar Filtros
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Resultados - Movimentos */}
-          {relatorioMovimentos && (
+          {/* RELATÓRIO: Movimentos */}
+          {activeTab === "movimentos" && relatorioMovimentos && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -346,7 +579,6 @@ export default function Reports() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Estatísticas */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioMovimentos.estatisticas.total_movimentos}</p>
@@ -370,7 +602,6 @@ export default function Reports() {
                   </div>
                 </div>
                 
-                {/* Tabela de Movimentos */}
                 {relatorioMovimentos.movimentos.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -419,8 +650,332 @@ export default function Reports() {
             </Card>
           )}
 
-          {/* Resultados - Stock */}
-          {relatorioStock && (
+          {/* RELATÓRIO: Manutenções */}
+          {activeTab === "manutencoes" && relatorioManutencoes && (
+            <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
+              <CardHeader>
+                <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <Wrench className="h-5 w-5 text-red-500" />
+                  Relatório de Manutenções / Oficina
+                </CardTitle>
+                <CardDescription className={isDark ? 'text-neutral-400' : 'text-gray-500'}>
+                  Equipamentos e viaturas atualmente em manutenção ou oficina
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
+                    <p className="text-2xl font-bold text-red-500">{relatorioManutencoes.estatisticas.total_geral}</p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Total em Manutenção</p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
+                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioManutencoes.estatisticas.total_equipamentos}</p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Equipamentos</p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
+                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioManutencoes.estatisticas.total_viaturas}</p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Viaturas</p>
+                  </div>
+                </div>
+
+                {/* Equipamentos em Manutenção */}
+                {relatorioManutencoes.equipamentos.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                      <Wrench className="h-4 w-4 text-orange-500" /> Equipamentos em Manutenção
+                    </h4>
+                    <div className="space-y-2">
+                      {relatorioManutencoes.equipamentos.map(eq => (
+                        <Link 
+                          key={eq.id} 
+                          to={`/equipamentos/${eq.id}`}
+                          className={`block p-4 rounded-lg border transition-colors ${isDark ? 'bg-neutral-700/30 border-neutral-600 hover:bg-neutral-700/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-orange-500 font-mono font-bold">{eq.codigo}</span>
+                              <span className={`ml-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{eq.descricao}</span>
+                            </div>
+                            <Badge className="bg-red-500/20 text-red-500"><AlertTriangle className="h-3 w-3 mr-1" />Em Manutenção</Badge>
+                          </div>
+                          {eq.descricao_avaria && (
+                            <p className={`mt-2 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                              Avaria: {eq.descricao_avaria}
+                            </p>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Viaturas em Oficina */}
+                {relatorioManutencoes.viaturas.length > 0 && (
+                  <div>
+                    <h4 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                      <Truck className="h-4 w-4 text-orange-500" /> Viaturas em Oficina
+                    </h4>
+                    <div className="space-y-2">
+                      {relatorioManutencoes.viaturas.map(v => (
+                        <Link 
+                          key={v.id} 
+                          to={`/viaturas/${v.id}`}
+                          className={`block p-4 rounded-lg border transition-colors ${isDark ? 'bg-neutral-700/30 border-neutral-600 hover:bg-neutral-700/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-orange-500 font-mono font-bold">{v.matricula}</span>
+                              <span className={`ml-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{v.marca} {v.modelo}</span>
+                            </div>
+                            <Badge className="bg-red-500/20 text-red-500"><AlertTriangle className="h-3 w-3 mr-1" />Em Oficina</Badge>
+                          </div>
+                          {v.descricao_avaria && (
+                            <p className={`mt-2 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                              Avaria: {v.descricao_avaria}
+                            </p>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {relatorioManutencoes.estatisticas.total_geral === 0 && (
+                  <div className={`text-center py-8 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                    <CheckCircle className="h-12 w-12 mx-auto mb-3 text-emerald-500" />
+                    <p>Nenhum recurso em manutenção</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* RELATÓRIO: Alertas */}
+          {activeTab === "alertas" && relatorioAlertas && (
+            <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
+              <CardHeader>
+                <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <Bell className="h-5 w-5 text-amber-500" />
+                  Relatório de Alertas
+                </CardTitle>
+                <CardDescription className={isDark ? 'text-neutral-400' : 'text-gray-500'}>
+                  Documentos a expirar nos próximos 30 dias (Seguro, IPO, Vistoria, Revisão)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
+                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioAlertas.estatisticas.total_alertas}</p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Total Alertas</p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
+                    <p className="text-2xl font-bold text-red-500">{relatorioAlertas.estatisticas.expirados}</p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Expirados</p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-amber-50 border border-amber-200'}`}>
+                    <p className="text-2xl font-bold text-amber-500">{relatorioAlertas.estatisticas.urgentes}</p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Urgentes (&lt;7 dias)</p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
+                    <p className="text-2xl font-bold text-blue-500">{relatorioAlertas.estatisticas.proximos}</p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Próximos (8-30 dias)</p>
+                  </div>
+                </div>
+
+                {relatorioAlertas.alertas.length > 0 ? (
+                  <div className="space-y-2">
+                    {relatorioAlertas.alertas.map((alerta, idx) => (
+                      <Link 
+                        key={idx}
+                        to={alerta.tipo_recurso === "viatura" ? `/viaturas/${alerta.recurso_id}` : `/equipamentos/${alerta.recurso_id}`}
+                        className={`block p-4 rounded-lg border transition-colors ${
+                          alerta.expirado 
+                            ? (isDark ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20' : 'bg-red-50 border-red-200 hover:bg-red-100')
+                            : alerta.urgente 
+                              ? (isDark ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-200 hover:bg-amber-100')
+                              : (isDark ? 'bg-neutral-700/30 border-neutral-600 hover:bg-neutral-700/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100')
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {alerta.tipo_recurso === "viatura" ? <Truck className="h-5 w-5 text-orange-500" /> : <Wrench className="h-5 w-5 text-orange-500" />}
+                            <div>
+                              <span className="text-orange-500 font-mono font-bold">{alerta.identificador}</span>
+                              <span className={`ml-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{alerta.descricao}</span>
+                            </div>
+                          </div>
+                          <Badge className={
+                            alerta.expirado 
+                              ? "bg-red-500 text-white"
+                              : alerta.urgente 
+                                ? "bg-amber-500 text-black"
+                                : "bg-blue-500/20 text-blue-500"
+                          }>
+                            {alerta.tipo_alerta}
+                          </Badge>
+                        </div>
+                        <div className={`mt-2 flex items-center gap-4 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                          {alerta.data_expiracao && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              Expira: {formatDateSimple(alerta.data_expiracao)}
+                            </span>
+                          )}
+                          {alerta.dias_restantes !== null && (
+                            <span className={`font-semibold ${alerta.expirado ? 'text-red-500' : alerta.urgente ? 'text-amber-500' : 'text-blue-500'}`}>
+                              {alerta.expirado ? `Expirado há ${Math.abs(alerta.dias_restantes)} dias` : `${alerta.dias_restantes} dias restantes`}
+                            </span>
+                          )}
+                          {alerta.kms_restantes !== undefined && (
+                            <span className={`font-semibold flex items-center gap-1 ${alerta.expirado ? 'text-red-500' : alerta.urgente ? 'text-amber-500' : 'text-blue-500'}`}>
+                              <Gauge className="h-4 w-4" />
+                              {alerta.kms_restantes <= 0 ? 'Revisão ultrapassada' : `${alerta.kms_restantes.toLocaleString()} km restantes`}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={`text-center py-8 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                    <CheckCircle className="h-12 w-12 mx-auto mb-3 text-emerald-500" />
+                    <p>Nenhum alerta nos próximos 30 dias</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* RELATÓRIO: Utilização */}
+          {activeTab === "utilizacao" && relatorioUtilizacao && (
+            <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
+              <CardHeader>
+                <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <Gauge className="h-5 w-5 text-orange-500" />
+                  Relatório de Utilização
+                </CardTitle>
+                <CardDescription className={isDark ? 'text-neutral-400' : 'text-gray-500'}>
+                  Estado atual e histórico de movimentos por equipamento/viatura
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Estatísticas Gerais */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
+                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {relatorioUtilizacao.estatisticas.equipamentos.total + relatorioUtilizacao.estatisticas.viaturas.total}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Total Recursos</p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+                    <p className="text-2xl font-bold text-emerald-500">
+                      {relatorioUtilizacao.estatisticas.equipamentos.disponivel + relatorioUtilizacao.estatisticas.viaturas.disponivel}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Disponíveis</p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-orange-500/10' : 'bg-orange-50'}`}>
+                    <p className="text-2xl font-bold text-orange-500">
+                      {relatorioUtilizacao.estatisticas.equipamentos.em_obra + relatorioUtilizacao.estatisticas.viaturas.em_obra}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Em Obra</p>
+                  </div>
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-red-500/10' : 'bg-red-50'}`}>
+                    <p className="text-2xl font-bold text-red-500">
+                      {relatorioUtilizacao.estatisticas.equipamentos.manutencao + relatorioUtilizacao.estatisticas.viaturas.manutencao}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Manutenção</p>
+                  </div>
+                </div>
+
+                {/* Tabela de Equipamentos */}
+                {relatorioUtilizacao.equipamentos.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                      <Wrench className="h-4 w-4 text-orange-500" /> Equipamentos ({relatorioUtilizacao.estatisticas.equipamentos.total})
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className={`border-b ${isDark ? 'border-neutral-700 text-neutral-400' : 'border-gray-200 text-gray-500'}`}>
+                            <th className="text-left py-2">Código</th>
+                            <th className="text-left py-2">Descrição</th>
+                            <th className="text-center py-2">Estado</th>
+                            <th className="text-center py-2">Movimentos</th>
+                            <th className="text-center py-2">Saídas</th>
+                            <th className="text-center py-2">Devoluções</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {relatorioUtilizacao.equipamentos.slice(0, 15).map(eq => (
+                            <tr key={eq.id} className={`border-b ${isDark ? 'border-neutral-700/50' : 'border-gray-100'}`}>
+                              <td className={`py-2 font-mono text-orange-500`}>{eq.codigo}</td>
+                              <td className={`py-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                <Link to={`/equipamentos/${eq.id}`} className="hover:underline">{eq.descricao}</Link>
+                              </td>
+                              <td className="py-2 text-center">{getEstadoBadge(eq.estado_atual)}</td>
+                              <td className={`py-2 text-center ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{eq.total_movimentos}</td>
+                              <td className="py-2 text-center text-amber-500">{eq.total_saidas}</td>
+                              <td className="py-2 text-center text-emerald-500">{eq.total_devolucoes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {relatorioUtilizacao.equipamentos.length > 15 && (
+                        <p className={`text-center py-2 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                          A mostrar 15 de {relatorioUtilizacao.equipamentos.length} equipamentos
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tabela de Viaturas */}
+                {relatorioUtilizacao.viaturas.length > 0 && (
+                  <div>
+                    <h4 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                      <Truck className="h-4 w-4 text-orange-500" /> Viaturas ({relatorioUtilizacao.estatisticas.viaturas.total})
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className={`border-b ${isDark ? 'border-neutral-700 text-neutral-400' : 'border-gray-200 text-gray-500'}`}>
+                            <th className="text-left py-2">Matrícula</th>
+                            <th className="text-left py-2">Modelo</th>
+                            <th className="text-center py-2">Estado</th>
+                            <th className="text-center py-2">Movimentos</th>
+                            <th className="text-center py-2">Saídas</th>
+                            <th className="text-center py-2">Devoluções</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {relatorioUtilizacao.viaturas.slice(0, 15).map(v => (
+                            <tr key={v.id} className={`border-b ${isDark ? 'border-neutral-700/50' : 'border-gray-100'}`}>
+                              <td className={`py-2 font-mono text-orange-500`}>{v.matricula}</td>
+                              <td className={`py-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                <Link to={`/viaturas/${v.id}`} className="hover:underline">{v.marca} {v.modelo}</Link>
+                              </td>
+                              <td className="py-2 text-center">{getEstadoBadge(v.estado_atual)}</td>
+                              <td className={`py-2 text-center ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{v.total_movimentos}</td>
+                              <td className="py-2 text-center text-amber-500">{v.total_saidas}</td>
+                              <td className="py-2 text-center text-emerald-500">{v.total_devolucoes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {relatorioUtilizacao.viaturas.length > 15 && (
+                        <p className={`text-center py-2 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                          A mostrar 15 de {relatorioUtilizacao.viaturas.length} viaturas
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* RELATÓRIO: Stock */}
+          {activeTab === "stock" && relatorioStock && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -433,7 +988,6 @@ export default function Reports() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Estatísticas */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioStock.estatisticas.total_movimentos}</p>
@@ -457,7 +1011,6 @@ export default function Reports() {
                   </div>
                 </div>
                 
-                {/* Resumo por Material */}
                 {relatorioStock.materiais_resumo.length > 0 && (
                   <div className="mb-6">
                     <h4 className={`text-sm font-semibold mb-3 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Consumo por Material</h4>
@@ -479,8 +1032,8 @@ export default function Reports() {
             </Card>
           )}
 
-          {/* Resultados - Obra */}
-          {relatorioObra && (
+          {/* RELATÓRIO: Obra */}
+          {activeTab === "obra" && relatorioObra && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -493,7 +1046,6 @@ export default function Reports() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Estatísticas */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-orange-500/10' : 'bg-orange-50'}`}>
                     <p className="text-2xl font-bold text-orange-500">{relatorioObra.estatisticas.equipamentos_atuais}</p>
@@ -513,7 +1065,6 @@ export default function Reports() {
                   </div>
                 </div>
                 
-                {/* Consumo de Materiais na Obra */}
                 {relatorioObra.consumo_materiais.length > 0 && (
                   <div className="mb-6">
                     <h4 className={`text-sm font-semibold mb-3 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Materiais Consumidos na Obra</h4>
@@ -542,7 +1093,6 @@ export default function Reports() {
                   </div>
                 )}
                 
-                {/* Recursos Atuais */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
@@ -590,7 +1140,6 @@ export default function Reports() {
 
         {/* TAB: Exportar/Importar */}
         <TabsContent value="exportar" className="space-y-6">
-          {/* Summary Preview */}
           {summary && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
@@ -620,9 +1169,7 @@ export default function Reports() {
             </Card>
           )}
 
-          {/* Export/Import Options */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* PDF Export */}
             <Card className={`hover:border-red-500/50 transition-colors ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}`}>
               <CardHeader>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -651,7 +1198,6 @@ export default function Reports() {
               </CardContent>
             </Card>
 
-            {/* Excel Export */}
             <Card className={`hover:border-emerald-500/50 transition-colors ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}`}>
               <CardHeader>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -680,7 +1226,6 @@ export default function Reports() {
               </CardContent>
             </Card>
 
-            {/* Excel Import */}
             <Card className={`hover:border-orange-500/50 transition-colors ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}`}>
               <CardHeader>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
