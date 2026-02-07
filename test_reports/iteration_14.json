@@ -1,0 +1,93 @@
+{
+  "summary": "Completed comprehensive testing of Reports page improvements. All 3 new backend endpoints (manutencoes, alertas, utilizacao) passed 23/23 tests. Frontend Reports page verified with all 6 report type buttons working correctly, filters functional, and data displaying properly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend GET /api/relatorios/manutencoes - Returns 200 with correct structure",
+    "Backend GET /api/relatorios/manutencoes - Returns equipamentos, viaturas, estatisticas fields",
+    "Backend GET /api/relatorios/manutencoes?tipo_recurso=equipamento - Filters only equipamentos",
+    "Backend GET /api/relatorios/manutencoes?tipo_recurso=viatura - Filters only viaturas",
+    "Backend GET /api/relatorios/alertas - Returns 200 with correct structure",
+    "Backend GET /api/relatorios/alertas - Returns alertas, estatisticas fields",
+    "Backend GET /api/relatorios/alertas?dias_antecedencia=30 - Works with custom days",
+    "Backend GET /api/relatorios/alertas?tipo_recurso=viatura - Filters only viaturas",
+    "Backend GET /api/relatorios/alertas - Alert structure has required fields (tipo_recurso, recurso_id, identificador, tipo_alerta, urgente, expirado)",
+    "Backend GET /api/relatorios/utilizacao - Returns 200 with correct structure",
+    "Backend GET /api/relatorios/utilizacao - Returns equipamentos, viaturas, estatisticas fields",
+    "Backend GET /api/relatorios/utilizacao?tipo_recurso=equipamento - Filters only equipamentos",
+    "Backend GET /api/relatorios/utilizacao?tipo_recurso=viatura - Filters only viaturas",
+    "Backend GET /api/relatorios/utilizacao?estado=disponivel - Filters by disponivel state",
+    "Backend GET /api/relatorios/utilizacao?estado=em_obra - Filters by em_obra state",
+    "Backend GET /api/relatorios/utilizacao?estado=manutencao - Filters by manutencao state",
+    "Backend GET /api/relatorios/utilizacao?data_inicio=2024-01-01&data_fim=2025-12-31 - Date range filter works",
+    "Backend GET /api/relatorios/utilizacao - Resources have movement stats (total_movimentos, total_saidas, total_devolucoes, estado_atual)",
+    "Backend GET /api/relatorios/movimentos - Regression test passed",
+    "Backend GET /api/relatorios/stock - Regression test passed",
+    "Backend unauthorized access returns 403 for all new endpoints",
+    "Frontend Reports.jsx - 6 report type buttons present (Movimentos, Materiais, Manutenções, Alertas, Utilização, Por Obra)",
+    "Frontend Reports.jsx - All buttons have correct data-testid attributes",
+    "Frontend Reports.jsx - Movimentos report shows statistics and movement table",
+    "Frontend Reports.jsx - Manutenções report shows equipment/vehicles in maintenance with statistics",
+    "Frontend Reports.jsx - Alertas report shows expiring documents with urgency indicators",
+    "Frontend Reports.jsx - Utilização report shows equipment and vehicles tables with status badges",
+    "Frontend Reports.jsx - Materiais report shows consumption statistics",
+    "Frontend Reports.jsx - Por Obra requires obra selection (shows error toast when not selected)",
+    "Frontend Reports.jsx - Filters section present (Obra, Tipo de Recurso, Estado, Mês, Ano, Data Início, Data Fim)",
+    "Frontend Reports.jsx - Limpar button resets filters",
+    "Frontend Reports.jsx - Aplicar Filtros button loads data with filters"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_relatorios_novos.py",
+    "/app/test_reports/pytest/pytest_relatorios_novos.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ESLint warning in Reports.jsx line 73: useEffect has missing dependency 'fetchInitialData' - minor issue, can be fixed by adding dependency or using useCallback"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_relatorios_novos.py"
+  ],
+  "success_rate": {
+    "backend": "100% (23/23 tests passed)",
+    "frontend": "100% (all features verified)"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test123"
+  },
+  "seed_data_creation": "No new seed data created. Used existing data in database.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Reports page fully tested with 6 report types: 1) Movimentos - asset movements, 2) Materiais - stock consumption, 3) Manutenções - equipment/vehicles in maintenance, 4) Alertas - expiring documents, 5) Utilização - usage statistics with status, 6) Por Obra - per-project report. All filters working: Obra, Tipo de Recurso (equipamento/viatura), Estado (disponivel/em_obra/manutencao), Mês/Ano, Data Início/Fim. Backend endpoints: /api/relatorios/manutencoes, /api/relatorios/alertas, /api/relatorios/utilizacao all return correct data structures.",
+  "features_verified": {
+    "report_types": {
+      "movimentos": "PASS - Shows movement statistics and table with Saída/Devolução badges",
+      "materiais": "PASS - Shows consumption statistics (Entradas/Saídas) and material breakdown",
+      "manutencoes": "PASS - Shows equipment/vehicles in maintenance with statistics",
+      "alertas": "PASS - Shows expiring documents with urgency levels (Expirados, Urgentes, Próximos)",
+      "utilizacao": "PASS - Shows equipment and vehicles tables with status badges and movement counts",
+      "por_obra": "PASS - Requires obra selection, shows error toast when not selected"
+    },
+    "filters": {
+      "obra": "PASS - Dropdown with all obras",
+      "tipo_recurso": "PASS - Options: Todos, Equipamentos, Viaturas",
+      "estado": "PASS - Options: Todos, Disponível, Em Obra, Manutenção",
+      "mes_ano": "PASS - Month and year dropdowns",
+      "data_inicio_fim": "PASS - Date input fields for custom range",
+      "limpar": "PASS - Resets all filters",
+      "aplicar_filtros": "PASS - Loads data with selected filters"
+    },
+    "backend_endpoints": {
+      "manutencoes": "PASS - Returns equipamentos, viaturas, estatisticas with filter support",
+      "alertas": "PASS - Returns alertas with urgency flags and statistics",
+      "utilizacao": "PASS - Returns resources with movement stats and estado_atual"
+    }
+  }
+}
