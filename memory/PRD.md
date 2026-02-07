@@ -146,6 +146,16 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
    - Barra de progresso para quilometragem até próxima revisão
    - Secção de documentação com links para PDFs carregados
 
+2. ✅ **Melhorias nos Relatórios** - Novos tipos de relatório e filtros avançados:
+   - **6 tipos de relatório**: Movimentos, Materiais, Manutenções, Alertas, Utilização, Por Obra
+   - **Relatório de Manutenções**: Lista equipamentos e viaturas em oficina com descrição da avaria
+   - **Relatório de Alertas**: Documentos a expirar (Seguro, IPO, Vistoria, Revisão) com urgência
+   - **Relatório de Utilização**: Estado atual e histórico de movimentos por recurso
+   - **Filtros avançados**: Obra, Tipo de Recurso (equipamento/viatura), Estado (disponível/em obra/manutenção)
+   - **Intervalo de datas personalizável**: Data início e fim
+   - **Botão Limpar**: Reseta todos os filtros
+   - 3 novos endpoints backend: `/api/relatorios/manutencoes`, `/api/relatorios/alertas`, `/api/relatorios/utilizacao`
+
 ### Sessão 06/02/2026:
 1. ✅ **Relatórios Avançados**: Nova página com filtros por obra, mês e ano
    - Relatório de Movimentos de Ativos (equipamentos e viaturas)
