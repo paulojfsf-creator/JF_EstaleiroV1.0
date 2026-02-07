@@ -175,12 +175,58 @@ export default function EquipamentoDetail() {
       <Card className={`mb-6 border-2 ${status.bgClass}`}>
         <CardContent className="py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
               {StatusIcon && <StatusIcon className={`h-6 w-6 ${status.textClass}`} />}
-              <div>
+              <div className="flex-1">
                 <p className={`font-semibold text-lg ${status.textClass}`}>{status.label}</p>
-                {equipamento.em_manutencao && equipamento.descricao_avaria && (
-                  <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>{equipamento.descricao_avaria}</p>
+                {equipamento.em_manutencao && (
+                  <div className="mt-2">
+                    {editingAvaria ? (
+                      <div className="space-y-2">
+                        <Textarea 
+                          value={descricaoAvaria} 
+                          onChange={(e) => setDescricaoAvaria(e.target.value)} 
+                          placeholder="Descreva o problema, localização na oficina, previsão de reparação..." 
+                          rows={3}
+                          className={`text-sm ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                          autoFocus
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={handleSaveAvaria}
+                            disabled={saving}
+                            className="bg-red-500 hover:bg-red-600 text-white"
+                          >
+                            {saving ? "A guardar..." : "Guardar"}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => { setEditingAvaria(false); setDescricaoAvaria(equipamento.descricao_avaria || ""); }}
+                            className={isDark ? 'border-neutral-600 text-neutral-300' : ''}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-2">
+                        <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          {equipamento.descricao_avaria || <span className={isDark ? 'text-neutral-500 italic' : 'text-gray-400 italic'}>Sem descrição da avaria</span>}
+                        </p>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => setEditingAvaria(true)}
+                          className={`h-6 px-2 ${isDark ? 'text-neutral-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+                          data-testid="editar-avaria-btn"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 )}
                 {obra_atual && (
                   <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
