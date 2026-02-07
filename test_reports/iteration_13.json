@@ -1,0 +1,92 @@
+{
+  "summary": "Completed comprehensive testing of Viatura module improvements including maintenance status, documentation upload fields, expiration date alerts, and status color indicators. All backend API tests passed (9/9). All frontend features verified working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend GET /api/viaturas - Returns list with new fields (em_manutencao, descricao_avaria, dua_url, seguro_url, ipo_url, carta_verde_url, manual_url)",
+    "Backend PATCH /api/viaturas/{id}/manutencao - Enable maintenance with description",
+    "Backend PATCH /api/viaturas/{id}/manutencao - Update description while in maintenance",
+    "Backend PATCH /api/viaturas/{id}/manutencao - Disable maintenance (mark available)",
+    "Backend PATCH /api/viaturas/{id}/manutencao - Returns 404 for non-existent viatura",
+    "Backend GET /api/viaturas/{id} - Returns full detail with viatura, obra_atual, historico, km_historico, alertas",
+    "Frontend ViaturaDetail.jsx - Status banner GREEN (text-emerald-500) for 'Disponível em Armazém'",
+    "Frontend ViaturaDetail.jsx - Status banner RED for 'Em Oficina / Avariado'",
+    "Frontend ViaturaDetail.jsx - 'Marcar em Oficina' button opens dialog with description textarea",
+    "Frontend ViaturaDetail.jsx - 'Marcar Disponível' button reverts maintenance state",
+    "Frontend ViaturaDetail.jsx - Inline edit avaria description with pencil icon (data-testid='editar-avaria-btn')",
+    "Frontend ViaturaDetail.jsx - 'Guardar' and 'Cancelar' buttons in edit mode",
+    "Frontend ViaturaDetail.jsx - Success toast 'Descrição da avaria atualizada' after save",
+    "Frontend ViaturaDetail.jsx - Success toast 'Viatura marcada como em oficina' after marking maintenance",
+    "Frontend ViaturaDetail.jsx - Success toast 'Viatura disponível novamente' after marking available",
+    "Frontend ViaturaDetail.jsx - 'Datas Importantes' section with Seguro, IPO, Revisão, Vistoria",
+    "Frontend ViaturaDetail.jsx - 'Documentação' section with DUA, Apólice de Seguro, Ficha IPO, Carta Verde, Manual do Veículo",
+    "Frontend ViaturaDetail.jsx - 'Localização Atual' section showing current location",
+    "Frontend ViaturaDetail.jsx - 'Histórico de Movimentos' sidebar",
+    "Frontend Viaturas.jsx - List with 'Localização' column showing status indicators",
+    "Frontend Viaturas.jsx - Green (text-emerald-500) for 'Em armazém'",
+    "Frontend Viaturas.jsx - Orange (text-orange-500) for obra assignment",
+    "Frontend Viaturas.jsx - Red (text-red-500) for maintenance",
+    "Frontend Viaturas.jsx - 'Alertas' column present",
+    "Frontend Viaturas.jsx - Nova Viatura form with 'Datas e Quilometragem' section",
+    "Frontend Viaturas.jsx - Nova Viatura form with 'Documentação' section (PDF upload buttons)",
+    "Frontend Viaturas.jsx - Nova Viatura form with 'Estado' section for maintenance"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_viatura_manutencao.py",
+    "/app/test_reports/pytest/pytest_viatura_manutencao.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_viatura_manutencao.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test123"
+  },
+  "seed_data_creation": "Created and cleaned up TEST-MAINT-01 viatura for maintenance testing. Temporarily marked viatura 18-HU-42 as in maintenance to test full flow, then reverted to available.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Viatura module fully tested with new features: 1) Status colors: GREEN (text-emerald-500) for available, ORANGE (text-orange-500) for in obra, RED for maintenance. 2) Maintenance flow: 'Marcar em Oficina' button -> dialog with description -> 'Marcar Disponível' to revert. 3) Inline avaria editing via pencil icon (data-testid='editar-avaria-btn'). 4) Documentation section with 5 PDF upload fields (DUA, Seguro, IPO, Carta Verde, Manual). 5) Important dates section with expiration alerts. 6) Backend PATCH /api/viaturas/{id}/manutencao endpoint working correctly.",
+  "features_verified": {
+    "status_banner_colors": {
+      "green_available": "PASS - 'Disponível em Armazém' with text-emerald-500",
+      "red_maintenance": "PASS - 'Em Oficina / Avariado' with red styling",
+      "orange_obra": "PASS - Orange styling for obra assignment"
+    },
+    "maintenance_flow": {
+      "marcar_oficina_button": "PASS - data-testid='marcar-manutencao-btn'",
+      "dialog_with_description": "PASS - Opens dialog with textarea for avaria description",
+      "marcar_disponivel_button": "PASS - data-testid='disponivel-btn'",
+      "inline_edit_avaria": "PASS - data-testid='editar-avaria-btn' with Guardar/Cancelar buttons"
+    },
+    "documentation_section": {
+      "dua": "PASS - DUA (Doc. Único) with upload/link",
+      "seguro": "PASS - Apólice de Seguro with upload/link",
+      "ipo": "PASS - Ficha IPO with upload/link",
+      "carta_verde": "PASS - Carta Verde with upload/link",
+      "manual": "PASS - Manual do Veículo with upload/link"
+    },
+    "important_dates": {
+      "seguro": "PASS - Data Seguro with expiration indicator",
+      "ipo": "PASS - Data IPO with expiration indicator",
+      "revisao": "PASS - Data Próxima Revisão with expiration indicator",
+      "vistoria": "PASS - Data Vistoria with expiration indicator"
+    },
+    "backend_api": {
+      "patch_manutencao": "PASS - PATCH /api/viaturas/{id}/manutencao updates em_manutencao and descricao_avaria",
+      "get_detail": "PASS - GET /api/viaturas/{id} returns viatura, obra_atual, historico, km_historico, alertas"
+    }
+  }
+}
