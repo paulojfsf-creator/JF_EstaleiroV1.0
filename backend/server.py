@@ -37,7 +37,10 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
-JWT_SECRET = os.environ.get('JWT_SECRET', 'warehouse-construction-secret-key-2024')
+JWT_SECRET = os.environ.get('JWT_SECRET')
+if not JWT_SECRET:
+    JWT_SECRET = 'warehouse-construction-secret-key-dev-only'
+    logger.warning("JWT_SECRET not set! Using default for development only.")
 JWT_ALGORITHM = 'HS256'
 
 UPLOAD_DIR = ROOT_DIR / 'uploads'
