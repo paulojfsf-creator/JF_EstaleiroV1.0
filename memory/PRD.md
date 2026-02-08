@@ -156,6 +156,14 @@ Sistema de gestão de armazém para construção civil, permitindo o controlo de
    - **Botão Limpar**: Reseta todos os filtros
    - 3 novos endpoints backend: `/api/relatorios/manutencoes`, `/api/relatorios/alertas`, `/api/relatorios/utilizacao`
 
+3. ✅ **Preparação para Deploy Produção**:
+   - Criado `netlify.toml` para deploy do frontend no Netlify
+   - Criado `render.yaml` para deploy do backend no Render
+   - Criado `DEPLOY.md` com instruções detalhadas passo a passo
+   - Criados `.env.example` para frontend e backend
+   - Criado `README.md` com documentação do projeto
+   - Atualizado `.gitignore` para produção
+
 ### Sessão 06/02/2026:
 1. ✅ **Relatórios Avançados**: Nova página com filtros por obra, mês e ano
    - Relatório de Movimentos de Ativos (equipamentos e viaturas)
