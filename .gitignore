@@ -67,3 +67,7 @@ backend/uploads/
 # Emergent Platform (do not remove)
 .emergent/
 .git/
+-e 
+# Environment files
+*.env
+*.env.*
