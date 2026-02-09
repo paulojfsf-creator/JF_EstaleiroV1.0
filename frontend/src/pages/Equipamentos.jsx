@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, useTheme, API } from "@/App";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -77,24 +77,23 @@ export default function Equipamentos() {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+  fetchData();
+}, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const [eqRes, obrasRes] = await Promise.all([
-        axios.get(`${API}/equipamentos`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/obras`, { headers: { Authorization: `Bearer ${token}` } })
-      ]);
-      setEquipamentos(eqRes.data);
-      setObras(obrasRes.data);
-    } catch (error) {
-      toast.error("Erro ao carregar dados");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    const [eqRes, obrasRes] = await Promise.all([
+      axios.get(`${API}/equipamentos`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${API}/obras`, { headers: { Authorization: `Bearer ${token}` } })
+    ]);
+    setEquipamentos(eqRes.data);
+    setObras(obrasRes.data);
+  } catch (error) {
+    toast.error("Erro ao carregar dados");
+  } finally {
+    setLoading(false);
+  }
+}, [token]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
