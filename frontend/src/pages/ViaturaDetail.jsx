@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth, useTheme, API } from "@/App";
 import axios from "axios";
@@ -54,9 +54,9 @@ export default function ViaturaDetail() {
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/viaturas/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -69,7 +69,7 @@ export default function ViaturaDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const handleToggleManutencao = async (novoEstado) => {
     if (novoEstado) {
