@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, API } from "@/App";
 import axios from "axios";
 import { toast } from "sonner";
@@ -45,9 +45,9 @@ export default function MovimentosStock() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [movRes, matRes, obrasRes] = await Promise.all([
         axios.get(`${API}/movimentos/stock`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -62,7 +62,7 @@ export default function MovimentosStock() {
     } finally {
       setLoading(false);
     }
-  };
+}, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
