@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, useTheme, API } from "@/App";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -68,10 +68,10 @@ export default function Materiais() {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+  fetchData();
+}, [fetchData]);
 
-  const fetchData = async () => {
+  import { useState, useEffect, useCallback } from "react";
     try {
       const [matRes, obrasRes] = await Promise.all([
         axios.get(`${API}/materiais`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -84,7 +84,7 @@ export default function Materiais() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
