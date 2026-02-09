@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth, useTheme, API } from "@/App";
 import axios from "axios";
@@ -51,23 +51,23 @@ export default function EquipamentoDetail() {
   const [editingAvaria, setEditingAvaria] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, [id]);
+  fetchData();
+}, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/equipamentos/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setData(response.data);
-      setDescricaoAvaria(response.data.equipamento?.descricao_avaria || "");
-    } catch (error) {
-      toast.error("Equipamento não encontrado");
-      navigate("/equipamentos");
-    } finally {
-      setLoading(false);
-    }
-  };
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setData(response.data);
+    setDescricaoAvaria(response.data.equipamento?.descricao_avaria || "");
+  } catch (error) {
+    toast.error("Equipamento não encontrado");
+    navigate("/equipamentos");
+  } finally {
+    setLoading(false);
+  }
+}, [id, token, navigate]);
 
   const handleToggleManutencao = async (novoEstado) => {
     if (novoEstado) {
