@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, API } from "@/App";
 import axios from "axios";
 import { toast } from "sonner";
@@ -45,10 +45,10 @@ export default function MovimentosAtivos() {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+  fetchData();
+}, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [movRes, eqRes, viRes, obrasRes] = await Promise.all([
         axios.get(`${API}/movimentos`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -65,7 +65,7 @@ export default function MovimentosAtivos() {
     } finally {
       setLoading(false);
     }
-  };
+ }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
