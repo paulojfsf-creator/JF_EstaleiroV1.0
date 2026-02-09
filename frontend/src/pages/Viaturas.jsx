@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, useTheme, API } from "@/App";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -89,9 +89,9 @@ export default function Viaturas() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [vRes, obrasRes] = await Promise.all([
         axios.get(`${API}/viaturas`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -104,7 +104,7 @@ export default function Viaturas() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const handleSendAlerts = async () => {
     setSendingAlerts(true);
