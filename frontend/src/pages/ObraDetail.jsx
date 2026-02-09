@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, useTheme, API } from "@/App";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
@@ -64,29 +64,28 @@ export default function ObraDetail() {
 
   useEffect(() => {
     fetchAllData();
-  }, [id]);
+  }, [fetchAllData]);
 
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
       const [obraRes, equipRes, viatRes, matRes] = await Promise.all([
-        axios.get(`${API}/obras/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/equipamentos`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/viaturas`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/materiais`, { headers: { Authorization: `Bearer ${token}` } })
-      ]);
-      
-      setObraData(obraRes.data);
-      // Filter only available (not assigned) resources
-      setEquipamentosDisponiveis(equipRes.data.filter(e => !e.obra_id));
-      setViaturasDisponiveis(viatRes.data.filter(v => !v.obra_id));
-      setMateriais(matRes.data);
-    } catch (error) {
-      toast.error("Erro ao carregar dados da obra");
-      navigate("/obras");
-    } finally {
-      setLoading(false);
-    }
-  };
+      axios.get(`${API}/obras/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${API}/equipamentos`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${API}/viaturas`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${API}/materiais`, { headers: { Authorization: `Bearer ${token}` } })
+    ]);
+    
+    setObraData(obraRes.data);
+    setEquipamentosDisponiveis(equipRes.data.filter(e => !e.obra_id));
+    setViaturasDisponiveis(viatRes.data.filter(v => !v.obra_id));
+    setMateriais(matRes.data);
+  } catch (error) {
+    toast.error("Erro ao carregar dados da obra");
+    navigate("/obras");
+  } finally {
+    setLoading(false);
+  }
+}, [id, token, navigate]);
 
   const handleAtribuirEquipamento = async () => {
     if (!selectedEquipamento) {
