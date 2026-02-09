@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, API } from "@/App";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -55,9 +55,9 @@ export default function Obras() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/obras`, { headers: { Authorization: `Bearer ${token}` } });
       setObras(response.data);
@@ -66,7 +66,7 @@ export default function Obras() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
