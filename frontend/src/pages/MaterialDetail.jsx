@@ -26,21 +26,21 @@ export default function MaterialDetail() {
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [fetchData]);
 
   const fetchData = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API}/materiais/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setData(response.data);
-    } catch (error) {
-      toast.error("Material não encontrado");
-      navigate("/materiais");
-    } finally {
-      setLoading(false);
-    }
-  }, [id, token, navigate]);
+  try {
+    const response = await axios.get(`${API}/materiais/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setData(response.data);
+  } catch (error) {
+    toast.error("Material não encontrado");
+    navigate("/materiais");
+  } finally {
+    setLoading(false);
+  }
+}, [id, token, navigate]);
 
   if (loading) {
     return (
