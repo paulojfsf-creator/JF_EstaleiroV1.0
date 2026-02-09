@@ -54,22 +54,22 @@ export default function ViaturaDetail() {
 
   useEffect(() => {
     fetchData();
-  }, [id, token, navigate]);
+  }, [fetchData]);
 
   const fetchData = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API}/viaturas/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setData(response.data);
-      setDescricaoAvaria(response.data.viatura?.descricao_avaria || "");
-    } catch (error) {
-      toast.error("Viatura não encontrada");
-      navigate("/viaturas");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  try {
+    const response = await axios.get(`${API}/viaturas/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setData(response.data);
+    setDescricaoAvaria(response.data.viatura?.descricao_avaria || "");
+  } catch (error) {
+    toast.error("Viatura não encontrada");
+    navigate("/viaturas");
+  } finally {
+    setLoading(false);
+  }
+}, [id, token, navigate]);
 
   const handleToggleManutencao = async (novoEstado) => {
     if (novoEstado) {
