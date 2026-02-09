@@ -71,7 +71,7 @@ export default function Materiais() {
   fetchData();
 }, [fetchData]);
 
-  import { useState, useEffect, useCallback } from "react";
+  const fetchData = useCallback(async () => {
     try {
       const [matRes, obrasRes] = await Promise.all([
         axios.get(`${API}/materiais`, { headers: { Authorization: `Bearer ${token}` } }),
