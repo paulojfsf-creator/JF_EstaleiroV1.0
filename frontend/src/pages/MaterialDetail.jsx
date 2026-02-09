@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth, useTheme, API } from "@/App";
 import axios from "axios";
@@ -28,7 +28,7 @@ export default function MaterialDetail() {
     fetchData();
   }, [id]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/materiais/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -40,7 +40,7 @@ export default function MaterialDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, token, navigate]);
 
   if (loading) {
     return (
