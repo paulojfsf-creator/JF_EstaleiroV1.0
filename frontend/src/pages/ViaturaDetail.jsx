@@ -54,7 +54,7 @@ export default function ViaturaDetail() {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [id, token, navigate]);
 
   const fetchData = useCallback(async () => {
     try {
