@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, useTheme, API } from "@/App";
 import axios from "axios";
 import { 
@@ -21,21 +21,21 @@ export default function Dashboard() {
   const isDark = theme === "dark";
 
   useEffect(() => {
-    fetchSummary();
-  }, []);
+  fetchSummary();
+}, [fetchSummary]);
 
-  const fetchSummary = async () => {
-    try {
-      const response = await axios.get(`${API}/summary`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSummary(response.data);
-    } catch (error) {
-      console.error("Error fetching summary:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchSummary = useCallback(async () => {
+  try {
+    const response = await axios.get(`${API}/summary`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setSummary(response.data);
+  } catch (error) {
+    console.error("Error fetching summary:", error);
+  } finally {
+    setLoading(false);
+  }
+}, [token]);
 
   if (loading) {
     return (
