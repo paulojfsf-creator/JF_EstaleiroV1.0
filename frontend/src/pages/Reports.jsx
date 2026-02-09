@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth, useTheme, API } from "@/App";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -70,9 +70,9 @@ export default function Reports() {
 
   useEffect(() => {
     fetchInitialData();
-  }, []);
+  }, [fetchInitialData]);
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = useCallback(async () => {
     try {
       const [summaryRes, obrasRes] = await Promise.all([
         axios.get(`${API}/summary`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -83,7 +83,7 @@ export default function Reports() {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  };
+  }, [token]);
 
   const fetchRelatorioMovimentos = async () => {
     setLoading(true);
