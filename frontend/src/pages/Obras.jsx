@@ -53,10 +53,6 @@ export default function Obras() {
     estado: "Ativa"
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/obras`, { headers: { Authorization: `Bearer ${token}` } });
@@ -67,6 +63,10 @@ export default function Obras() {
       setLoading(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
