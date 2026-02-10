@@ -20,10 +20,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const isDark = theme === "dark";
 
-  useEffect(() => {
-  fetchSummary();
-}, [fetchSummary]);
-
   const fetchSummary = useCallback(async () => {
   try {
     const response = await axios.get(`${API}/summary`, {
@@ -37,6 +33,10 @@ export default function Dashboard() {
   }
 }, [token]);
 
+  useEffect(() => {
+  fetchSummary();
+}, [fetchSummary]);
+  
   if (loading) {
     return (
       <div className={`flex items-center justify-center h-64 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
