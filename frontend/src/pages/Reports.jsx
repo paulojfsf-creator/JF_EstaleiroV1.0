@@ -68,10 +68,6 @@ export default function Reports() {
   // Tab ativa
   const [activeTab, setActiveTab] = useState("movimentos");
 
-  useEffect(() => {
-    fetchInitialData();
-  }, [fetchInitialData]);
-
   const fetchInitialData = useCallback(async () => {
     try {
       const [summaryRes, obrasRes] = await Promise.all([
@@ -84,6 +80,10 @@ export default function Reports() {
       console.error("Error fetching data:", error);
     }
   }, [token]);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   const fetchRelatorioMovimentos = async () => {
     setLoading(true);
