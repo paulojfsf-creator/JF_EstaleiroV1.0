@@ -67,10 +67,6 @@ export default function Materiais() {
     observacoes: ""
   });
 
-  useEffect(() => {
-  fetchData();
-}, [fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const [matRes, obrasRes] = await Promise.all([
@@ -85,6 +81,10 @@ export default function Materiais() {
       setLoading(false);
     }
   }, [token]);
+  
+  useEffect(() => {
+  fetchData();
+}, [fetchData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
