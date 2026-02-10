@@ -43,10 +43,6 @@ export default function MovimentosStock() {
     observacoes: ""
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const [movRes, matRes, obrasRes] = await Promise.all([
@@ -63,6 +59,10 @@ export default function MovimentosStock() {
       setLoading(false);
     }
 }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
