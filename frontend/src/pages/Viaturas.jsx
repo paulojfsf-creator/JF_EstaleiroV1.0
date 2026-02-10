@@ -87,10 +87,6 @@ export default function Viaturas() {
     responsavel_levantou: ""
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const [vRes, obrasRes] = await Promise.all([
@@ -105,6 +101,10 @@ export default function Viaturas() {
       setLoading(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSendAlerts = async () => {
     setSendingAlerts(true);
