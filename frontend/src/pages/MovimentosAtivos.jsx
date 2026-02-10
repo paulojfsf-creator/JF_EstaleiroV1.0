@@ -44,10 +44,6 @@ export default function MovimentosAtivos() {
     observacoes: ""
   });
 
-  useEffect(() => {
-  fetchData();
-}, [fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const [movRes, eqRes, viRes, obrasRes] = await Promise.all([
@@ -66,6 +62,10 @@ export default function MovimentosAtivos() {
       setLoading(false);
     }
  }, [token]);
+
+  useEffect(() => {
+  fetchData();
+}, [fetchData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
