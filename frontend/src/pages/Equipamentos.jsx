@@ -76,10 +76,6 @@ export default function Equipamentos() {
     responsavel_levantou: ""
   });
 
-  useEffect(() => {
-  fetchData();
-}, [fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
     const [eqRes, obrasRes] = await Promise.all([
@@ -94,6 +90,11 @@ export default function Equipamentos() {
     setLoading(false);
   }
 }, [token]);
+
+  useEffect(() => {
+  fetchData();
+}, [fetchData]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
