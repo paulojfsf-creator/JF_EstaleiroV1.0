@@ -52,10 +52,6 @@ export default function ViaturaDetail() {
   const [saving, setSaving] = useState(false);
   const [editingAvaria, setEditingAvaria] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const fetchData = useCallback(async () => {
   try {
     const response = await axios.get(`${API}/viaturas/${id}`, {
@@ -70,6 +66,10 @@ export default function ViaturaDetail() {
     setLoading(false);
   }
 }, [id, token, navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleToggleManutencao = async (novoEstado) => {
     if (novoEstado) {
