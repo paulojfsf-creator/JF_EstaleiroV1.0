@@ -24,10 +24,6 @@ export default function MaterialDetail() {
   const [loading, setLoading] = useState(true);
   const isDark = theme === "dark";
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const fetchData = useCallback(async () => {
   try {
     const response = await axios.get(`${API}/materiais/${id}`, {
@@ -41,6 +37,10 @@ export default function MaterialDetail() {
     setLoading(false);
   }
 }, [id, token, navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return (
