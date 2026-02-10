@@ -40,10 +40,6 @@ export default function MovimentosViaturas() {
     observacoes: ""
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const [movRes, viatRes, obrasRes] = await Promise.all([
@@ -60,6 +56,10 @@ export default function MovimentosViaturas() {
       setLoading(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
