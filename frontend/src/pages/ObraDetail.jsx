@@ -62,31 +62,30 @@ export default function ObraDetail() {
   const [tipoMovStock, setTipoMovStock] = useState("Saida");
   const [recursoDevolver, setRecursoDevolver] = useState(null);
   
-   const fetchAllData = useCallback(async () => {
+   useEffect(() => {
+  const fetchAllData = async () => {
     try {
       const [obraRes, equipRes, viatRes, matRes] = await Promise.all([
-      axios.get(`${API}/obras/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(`${API}/equipamentos`, { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(`${API}/viaturas`, { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(`${API}/materiais`, { headers: { Authorization: `Bearer ${token}` } })
-    ]);  
-    
-    setObraData(obraRes.data);
-    setEquipamentosDisponiveis(equipRes.data.filter(e => !e.obra_id));
-    setViaturasDisponiveis(viatRes.data.filter(v => !v.obra_id));
-    setMateriais(matRes.data);
-  } catch (error) {
-    toast.error("Erro ao carregar dados da obra");
-    navigate("/obras");
-  } finally {
-    setLoading(false);
-  }
-}, [id, token, navigate]);
- 
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+        axios.get(`${API}/obras/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/equipamentos`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/viaturas`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/materiais`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
 
+      setObraData(obraRes.data);
+      setEquipamentosDisponiveis(equipRes.data.filter(e => !e.obra_id));
+      setViaturasDisponiveis(viatRes.data.filter(v => !v.obra_id));
+      setMateriais(matRes.data);
+    } catch (error) {
+      toast.error("Erro ao carregar dados da obra");
+      navigate("/obras");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAllData();
+}, [id, token, navigate]);
   const handleAtribuirEquipamento = async () => {
     if (!selectedEquipamento) {
       toast.error("Selecione um equipamento");
