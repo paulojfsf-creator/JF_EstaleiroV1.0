@@ -62,6 +62,10 @@ export default function ObraDetail() {
   const [tipoMovStock, setTipoMovStock] = useState("Saida");
   const [recursoDevolver, setRecursoDevolver] = useState(null);
   
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+  
   const fetchAllData = useCallback(async () => {
     try {
       const [obraRes, equipRes, viatRes, matRes] = await Promise.all([
@@ -70,10 +74,6 @@ export default function ObraDetail() {
       axios.get(`${API}/viaturas`, { headers: { Authorization: `Bearer ${token}` } }),
       axios.get(`${API}/materiais`, { headers: { Authorization: `Bearer ${token}` } })
     ]);  
-
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
     
     setObraData(obraRes.data);
     setEquipamentosDisponiveis(equipRes.data.filter(e => !e.obra_id));
