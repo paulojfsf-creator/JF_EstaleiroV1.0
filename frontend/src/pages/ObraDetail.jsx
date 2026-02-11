@@ -62,11 +62,7 @@ export default function ObraDetail() {
   const [tipoMovStock, setTipoMovStock] = useState("Saida");
   const [recursoDevolver, setRecursoDevolver] = useState(null);
   
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
-  
-  const fetchAllData = useCallback(async () => {
+   const fetchAllData = useCallback(async () => {
     try {
       const [obraRes, equipRes, viatRes, matRes] = await Promise.all([
       axios.get(`${API}/obras/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -86,6 +82,10 @@ export default function ObraDetail() {
     setLoading(false);
   }
 }, [id, token, navigate]);
+ 
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const handleAtribuirEquipamento = async () => {
     if (!selectedEquipamento) {
