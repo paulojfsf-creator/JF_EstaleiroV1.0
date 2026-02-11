@@ -554,7 +554,7 @@ for e in equipamentos:
         })
 
     # Avariado (se tiver descrição de avaria)
-    if e.get("descricao_avaria"):
+    elif e.get("descricao_avaria"):
         alerts.append({
             "type": "equipamento_avariado",
             "item": f"{e.get('codigo')} - {e.get('descricao')}",
