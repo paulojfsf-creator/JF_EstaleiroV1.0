@@ -341,9 +341,12 @@ export default function Reports() {
     setFiltroDataFim("");
   };
 
-  const handlePrint = () => {
-  const content = printRef.current;
-  if (!content) return;
+const handlePrint = () => {
+  if (!printRef.current) return;
+  window.print();
+};
+
+return (
 
     <div data-testid="reports-page" className="animate-fade-in">
       <div className="mb-8">
