@@ -16,8 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
-const printRef = useRef(null);
-
 const handlePrint = () => {
   const content = printRef.current;
   if (!content) return;
@@ -113,6 +111,8 @@ export default function Reports() {
   const { token } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === "dark";
+
+  const printRef = useRef(null);
   
   const [downloading, setDownloading] = useState({ pdf: false, excel: false });
   const [uploading, setUploading] = useState(false);
@@ -411,6 +411,32 @@ export default function Reports() {
     setFiltroDataInicio("");
     setFiltroDataFim("");
   };
+
+  const handlePrint = () => {
+  const content = printRef.current;
+  if (!content) return;
+
+  const printWindow = window.open("", "", "width=900,height=650");
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Relatório</title>
+        <style>
+          body { font-family: Arial; padding: 24px; }
+          table { width:100%; border-collapse: collapse; }
+          th, td { border:1px solid #ccc; padding:6px; font-size:12px; }
+        </style>
+      </head>
+      <body>
+        ${content.innerHTML}
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.print();
+};
 
   return (
     <div data-testid="reports-page" className="animate-fade-in">
