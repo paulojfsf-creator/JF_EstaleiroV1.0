@@ -16,6 +16,79 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
+const printRef = useRef(null);
+
+const handlePrint = () => {
+  const content = printRef.current;
+  if (!content) return;
+
+  const printWindow = window.open("", "", "width=900,height=650");
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Relatório</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 24px;
+            color: #000;
+          }
+
+          h1 {
+            margin-bottom: 4px;
+          }
+
+          .header {
+            border-bottom: 2px solid #000;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+          }
+
+          th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            font-size: 12px;
+          }
+
+          th {
+            background: #f5f5f5;
+          }
+
+          .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+          }
+
+          .box {
+            border: 1px solid #ddd;
+            padding: 8px;
+            min-width: 120px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Relatório JF Estaleiro</h1>
+          <div>Data: ${new Date().toLocaleDateString("pt-PT")}</div>
+        </div>
+        ${content.innerHTML}
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.print();
+};
+
 const meses = [
   { value: "1", label: "Janeiro" },
   { value: "2", label: "Fevereiro" },
