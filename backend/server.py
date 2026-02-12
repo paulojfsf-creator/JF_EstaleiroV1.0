@@ -538,17 +538,6 @@ async def get_viatura(viatura_id: str, user=Depends(get_current_user)):
     ).sort("created_at", -1).to_list(100)
     
    
-    # ALERTAS DE EQUIPAMENTOS (MANUTENÇÃO / AVARIA)
-for e in equipamentos:
-    # Em manutenção
-    if e.get("em_manutencao"):
-        alerts.append({
-            "type": "equipamento_manutencao",
-            "item": f"{e.get('codigo')} - {e.get('descricao')}",
-            "message": "Equipamento em manutenção",
-            "urgent": False
-        })
-
     # Avariado (se tiver descrição de avaria)
     elif e.get("descricao_avaria"):
         alerts.append({
@@ -557,24 +546,6 @@ for e in equipamentos:
             "message": f"Avaria: {e.get('descricao_avaria')}",
             "urgent": True
         })
-
-# ALERTAS DE IPO (VIATURAS)
-for v in viaturas:
-    if v.get("data_ipo"):
-        try:
-            ipo_date = datetime.fromisoformat(v["data_ipo"].replace("Z", "+00:00")).date()
-            days_until = (ipo_date - today).days
-
-            if days_until <= ALERT_DAYS_BEFORE:
-                alerts.append({
-                    "type": "ipo",
-                    "item": f"{v['marca']} {v['modelo']} ({v['matricula']})",
-                    "message": f"IPO em {days_until} dias" if days_until >= 0 else "IPO expirado",
-                    "urgent": days_until < 0
-                })
-        except:
-            pass
-    return {"viatura": item, "obra_atual": obra, "historico": movimentos, "km_historico": km_movimentos, "alertas": alertas}
 
 @api_router.patch("/viaturas/{viatura_id}/manutencao")
 async def update_viatura_manutencao(viatura_id: str, data: ManutencaoUpdate, user=Depends(get_current_user)):
