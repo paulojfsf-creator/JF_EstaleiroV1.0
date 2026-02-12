@@ -345,7 +345,6 @@ export default function Reports() {
   const content = printRef.current;
   if (!content) return;
 
-  return (
     <div data-testid="reports-page" className="animate-fade-in">
       <div className="mb-8">
         <h1 className={`text-2xl font-bold flex items-center gap-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
