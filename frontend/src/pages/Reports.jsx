@@ -412,28 +412,6 @@ export default function Reports() {
   const content = printRef.current;
   if (!content) return;
 
-  const printWindow = window.open("", "", "width=900,height=650");
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Relatório</title>
-        <style>
-          body { font-family: Arial; padding: 24px; }
-          table { width:100%; border-collapse: collapse; }
-          th, td { border:1px solid #ccc; padding:6px; font-size:12px; }
-        </style>
-      </head>
-      <body>
-        ${content.innerHTML}
-      </body>
-    </html>
-  `);
-
-  printWindow.document.close();
-  printWindow.print();
-};
-
   return (
     <div data-testid="reports-page" className="animate-fade-in">
       <div className="mb-8">
