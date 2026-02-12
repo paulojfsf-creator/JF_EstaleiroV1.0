@@ -642,6 +642,14 @@ export default function Reports() {
           {activeTab === "movimentos" && relatorioMovimentos && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
+                <Button
+  onClick={handlePrint}
+  variant="outline"
+  className="ml-auto"
+>
+  <FileText className="h-4 w-4 mr-2" />
+  Imprimir
+</Button>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <ArrowRightLeft className="h-5 w-5 text-orange-500" />
                   Relatório de Movimentos de Ativos
@@ -651,7 +659,7 @@ export default function Reports() {
                   {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent ref={printRef}>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioMovimentos.estatisticas.total_movimentos}</p>
@@ -727,6 +735,14 @@ export default function Reports() {
           {activeTab === "manutencoes" && relatorioManutencoes && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
+                <Button
+  onClick={handlePrint}
+  variant="outline"
+  className="ml-auto"
+>
+  <FileText className="h-4 w-4 mr-2" />
+  Imprimir
+</Button>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Wrench className="h-5 w-5 text-red-500" />
                   Relatório de Manutenções / Oficina
@@ -735,7 +751,7 @@ export default function Reports() {
                   Equipamentos e viaturas atualmente em manutenção ou oficina
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent ref={printRef}>
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
                     <p className="text-2xl font-bold text-red-500">{relatorioManutencoes.estatisticas.total_geral}</p>
@@ -827,6 +843,14 @@ export default function Reports() {
           {activeTab === "alertas" && relatorioAlertas && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
+                <Button
+  onClick={handlePrint}
+  variant="outline"
+  className="ml-auto"
+>
+  <FileText className="h-4 w-4 mr-2" />
+  Imprimir
+</Button>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Bell className="h-5 w-5 text-amber-500" />
                   Relatório de Alertas
@@ -835,7 +859,7 @@ export default function Reports() {
                   Documentos a expirar nos próximos 30 dias (Seguro, IPO, Vistoria, Revisão)
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent ref={printRef}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioAlertas.estatisticas.total_alertas}</p>
@@ -923,6 +947,14 @@ export default function Reports() {
           {activeTab === "utilizacao" && relatorioUtilizacao && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
+                <Button
+  onClick={handlePrint}
+  variant="outline"
+  className="ml-auto"
+>
+  <FileText className="h-4 w-4 mr-2" />
+  Imprimir
+</Button>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Gauge className="h-5 w-5 text-orange-500" />
                   Relatório de Utilização
@@ -931,7 +963,7 @@ export default function Reports() {
                   Estado atual e histórico de movimentos por equipamento/viatura
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent ref={printRef}>
                 {/* Estatísticas Gerais */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
@@ -1051,6 +1083,14 @@ export default function Reports() {
           {activeTab === "stock" && relatorioStock && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
+                <Button
+  onClick={handlePrint}
+  variant="outline"
+  className="ml-auto"
+>
+  <FileText className="h-4 w-4 mr-2" />
+  Imprimir
+</Button>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Package className="h-5 w-5 text-orange-500" />
                   Relatório de Consumo de Materiais
@@ -1060,7 +1100,7 @@ export default function Reports() {
                   {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent ref={printRef}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioStock.estatisticas.total_movimentos}</p>
@@ -1109,6 +1149,14 @@ export default function Reports() {
           {activeTab === "obra" && relatorioObra && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
               <CardHeader>
+                <Button
+  onClick={handlePrint}
+  variant="outline"
+  className="ml-auto"
+>
+  <FileText className="h-4 w-4 mr-2" />
+  Imprimir
+</Button>
                 <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Building2 className="h-5 w-5 text-orange-500" />
                   Relatório da Obra: {relatorioObra.obra.nome}
@@ -1118,7 +1166,7 @@ export default function Reports() {
                   {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent ref={printRef}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-orange-500/10' : 'bg-orange-50'}`}>
                     <p className="text-2xl font-bold text-orange-500">{relatorioObra.estatisticas.equipamentos_atuais}</p>
