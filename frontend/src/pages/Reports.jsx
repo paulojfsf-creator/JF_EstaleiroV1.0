@@ -16,10 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
-const handlePrint = () => {
-  const content = printRef.current;
-  if (!content) return;
-
   const printWindow = window.open("", "", "width=900,height=650");
 
   printWindow.document.write(`
