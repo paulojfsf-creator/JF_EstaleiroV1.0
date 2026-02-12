@@ -347,6 +347,16 @@ const handlePrint = () => {
 };
 
 return (
+  <>
+    <style>
+      {`
+        @media print {
+          button {
+            display: none !important;
+          }
+        }
+      `}
+    </style>
 
     <div data-testid="reports-page" className="animate-fade-in">
       <div className="mb-8">
@@ -1318,7 +1328,8 @@ return (
             </Card>
           </div>
         </TabsContent>
-      </Tabs>
-    </div>
-  );
+       </Tabs>
+</div>
+</>
+);
 }
