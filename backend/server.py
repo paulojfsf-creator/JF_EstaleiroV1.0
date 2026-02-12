@@ -537,11 +537,7 @@ async def get_viatura(viatura_id: str, user=Depends(get_current_user)):
         {"viatura_id": viatura_id}, {"_id": 0}
     ).sort("created_at", -1).to_list(100)
     
-    # Calcular alertas
-    alertas = []
-    from datetime import datetime, timedelta
-    hoje = datetime.now()
-    
+   
     # ALERTAS DE EQUIPAMENTOS (MANUTENÇÃO / AVARIA)
 for e in equipamentos:
     # Em manutenção
@@ -1073,8 +1069,13 @@ async def get_summary(user=Depends(get_current_user)):
     alerts = []
     today = datetime.now(timezone.utc).date()
     
+    # ALERTAS VIATURAS (VISTORIA / SEGURO / IPO)
     for v in viaturas:
-        for field, tipo, msg in [("data_vistoria", "vistoria", "Vistoria"), ("data_seguro", "seguro", "Seguro")]:
+        for field, tipo, msg in [
+            ("data_vistoria", "vistoria", "Vistoria"),
+            ("data_seguro", "seguro", "Seguro"),
+            ("data_ipo", "ipo", "IPO")
+        ]:
             if v.get(field):
                 try:
                     date = datetime.fromisoformat(v[field].replace("Z", "+00:00")).date()
@@ -1088,7 +1089,25 @@ async def get_summary(user=Depends(get_current_user)):
                         })
                 except:
                     pass
-    
+
+    # ALERTAS EQUIPAMENTOS
+    for e in equipamentos:
+        if e.get("em_manutencao"):
+            alerts.append({
+                "type": "equipamento_manutencao",
+                "item": f"{e['codigo']} - {e['descricao']}",
+                "message": "Equipamento em manutenção",
+                "urgent": False
+            })
+        elif e.get("descricao_avaria"):
+            alerts.append({
+                "type": "equipamento_avariado",
+                "item": f"{e['codigo']} - {e['descricao']}",
+                "message": f"Avaria: {e['descricao_avaria']}",
+                "urgent": True
+            })
+
+    # ALERTAS STOCK
     for m in materiais:
         if m.get("stock_atual", 0) <= m.get("stock_minimo", 0) and m.get("stock_minimo", 0) > 0:
             alerts.append({
@@ -1119,7 +1138,6 @@ async def get_summary(user=Depends(get_current_user)):
         },
         "alerts": alerts
     }
-
 # ==================== RELATÓRIOS AVANÇADOS ====================
 @api_router.get("/relatorios/movimentos")
 async def get_relatorio_movimentos(
