@@ -348,15 +348,30 @@ const handlePrint = () => {
 
 return (
   <>
-    <style>
-      {`
-        @media print {
-          button {
-            display: none !important;
-          }
-        }
-      `}
-    </style>
+   <style>
+{`
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+
+    .print-area, .print-area * {
+      visibility: visible;
+    }
+
+    .print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+
+    button {
+      display: none !important;
+    }
+  }
+`}
+</style>
 
     <div data-testid="reports-page" className="animate-fade-in">
       <div className="mb-8">
@@ -804,7 +819,7 @@ return (
                   Documentos a expirar nos próximos 30 dias (Seguro, IPO, Vistoria, Revisão)
                 </CardDescription>
               </CardHeader>
-              <CardContent ref={printRef}>
+              <CardContent ref={printRef} className="print-area">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioAlertas.estatisticas.total_alertas}</p>
@@ -908,7 +923,7 @@ return (
                   Estado atual e histórico de movimentos por equipamento/viatura
                 </CardDescription>
               </CardHeader>
-              <CardContent ref={printRef}>
+              <CardContent ref={printRef} className="print-area">
                 {/* Estatísticas Gerais */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
@@ -1045,7 +1060,7 @@ return (
                   {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
-              <CardContent ref={printRef}>
+              <CardContent ref={printRef} className="print-area">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioStock.estatisticas.total_movimentos}</p>
@@ -1111,7 +1126,7 @@ return (
                   {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
-              <CardContent ref={printRef}>
+              <CardContent ref={printRef} className="print-area">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-orange-500/10' : 'bg-orange-50'}`}>
                     <p className="text-2xl font-bold text-orange-500">{relatorioObra.estatisticas.equipamentos_atuais}</p>
