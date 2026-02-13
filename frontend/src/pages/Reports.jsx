@@ -350,26 +350,58 @@ return (
   <>
    <style>
 {`
-  @media print {
-    body * {
-      visibility: hidden;
-    }
+@media print {
 
-    .print-area, .print-area * {
-      visibility: visible;
-    }
-
-    .print-area {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-    }
-
-    button {
-      display: none !important;
-    }
+  body {
+    background: white !important;
   }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area, .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    background: white;
+    color: black;
+    font-size: 12px;
+  }
+
+  h1, h2, h3 {
+    color: black !important;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  table th {
+    background: #f3f4f6 !important;
+    color: black !important;
+    border-bottom: 2px solid #ddd;
+  }
+
+  table td {
+    border-bottom: 1px solid #eee;
+  }
+
+  button {
+    display: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
 `}
 </style>
 
@@ -620,6 +652,10 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
+                <div className="mb-6">
+  <h2 className="text-xl font-bold">Relatório</h2>
+  <p>Data: {new Date().toLocaleDateString()}</p>
+</div>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioMovimentos.estatisticas.total_movimentos}</p>
@@ -712,6 +748,10 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
+                <div className="mb-6">
+  <h2 className="text-xl font-bold">Relatório</h2>
+  <p>Data: {new Date().toLocaleDateString()}</p>
+</div>
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
                     <p className="text-2xl font-bold text-red-500">{relatorioManutencoes.estatisticas.total_geral}</p>
@@ -820,6 +860,10 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
+                <div className="mb-6">
+  <h2 className="text-xl font-bold">Relatório</h2>
+  <p>Data: {new Date().toLocaleDateString()}</p>
+</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioAlertas.estatisticas.total_alertas}</p>
@@ -924,6 +968,10 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
+                <div className="mb-6">
+  <h2 className="text-xl font-bold">Relatório</h2>
+  <p>Data: {new Date().toLocaleDateString()}</p>
+</div>
                 {/* Estatísticas Gerais */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
@@ -1061,6 +1109,10 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
+                <div className="mb-6">
+  <h2 className="text-xl font-bold">Relatório</h2>
+  <p>Data: {new Date().toLocaleDateString()}</p>
+</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioStock.estatisticas.total_movimentos}</p>
@@ -1127,6 +1179,10 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
+                <div className="mb-6">
+  <h2 className="text-xl font-bold">Relatório</h2>
+  <p>Data: {new Date().toLocaleDateString()}</p>
+</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-orange-500/10' : 'bg-orange-50'}`}>
                     <p className="text-2xl font-bold text-orange-500">{relatorioObra.estatisticas.equipamentos_atuais}</p>
