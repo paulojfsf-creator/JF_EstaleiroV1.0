@@ -481,6 +481,7 @@ return (
               </div>
             </CardContent>
           </Card>
+         )}
 
           {/* Filtros */}
           <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
@@ -629,7 +630,7 @@ return (
               </div>
             </CardContent>
           </Card>
-
+        )}
           {/* RELATÓRIO: Movimentos */}
           {activeTab === "movimentos" && relatorioMovimentos && (
             <Card className={isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-200'}>
