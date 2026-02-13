@@ -652,15 +652,14 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
-
-  <div className="mb-6 border-b pb-3">
-    <h2 className="text-xl font-bold">
-      RELATÓRIO DE MOVIMENTOS
-    </h2>
-    <p className="text-sm">
-      Data: {new Date().toLocaleDateString()}
-    </p>
-  </div>
+              <div className="mb-6 border-b pb-3">
+              <h2 className="text-xl font-bold">
+              RELATÓRIO DE MOVIMENTOS
+              </h2>
+              <p className="text-sm">
+              Data: {new Date().toLocaleDateString()}
+              </p>
+              </div>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioMovimentos.estatisticas.total_movimentos}</p>
@@ -756,7 +755,7 @@ return (
 
   <div className="mb-6 border-b pb-3">
     <h2 className="text-xl font-bold">
-      RELATÓRIO DE MANUTENÇOES
+      RELATÓRIO DE MANUTENÇÕES
     </h2>
     <p className="text-sm">
       Data: {new Date().toLocaleDateString()}
