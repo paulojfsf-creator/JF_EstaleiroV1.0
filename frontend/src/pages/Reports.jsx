@@ -619,7 +619,7 @@ return (
                   {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
-              <CardContent ref={printRef}>
+              <CardContent ref={printRef} className="print-area">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
                     <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{relatorioMovimentos.estatisticas.total_movimentos}</p>
@@ -711,7 +711,7 @@ return (
                   Equipamentos e viaturas atualmente em manutenção ou oficina
                 </CardDescription>
               </CardHeader>
-              <CardContent ref={printRef}>
+              <CardContent ref={printRef} className="print-area">
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
                     <p className="text-2xl font-bold text-red-500">{relatorioManutencoes.estatisticas.total_geral}</p>
