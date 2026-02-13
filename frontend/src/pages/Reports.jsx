@@ -651,7 +651,7 @@ return (
                   {filtroMes && filtroMes !== "all" ? ` ${meses.find(m => m.value === filtroMes)?.label}` : ""} {filtroAno}
                 </CardDescription>
               </CardHeader>
-              <<CardContent ref={printRef} className="print-area">
+              <CardContent ref={printRef} className="print-area">
 
   <div className="mb-6 border-b pb-3">
     <h2 className="text-xl font-bold">
@@ -753,7 +753,6 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
-                <CardContent ref={printRef} className="print-area">
 
   <div className="mb-6 border-b pb-3">
     <h2 className="text-xl font-bold">
@@ -871,7 +870,6 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
-                <CardContent ref={printRef} className="print-area">
 
   <div className="mb-6 border-b pb-3">
     <h2 className="text-xl font-bold">
@@ -985,8 +983,7 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
-                <CardContent ref={printRef} className="print-area">
-
+               
   <div className="mb-6 border-b pb-3">
     <h2 className="text-xl font-bold">
       RELATÓRIO DE UTILIZAÇÃO
@@ -1132,8 +1129,7 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
-                <CardContent ref={printRef} className="print-area">
-
+       
   <div className="mb-6 border-b pb-3">
     <h2 className="text-xl font-bold">
       RELATÓRIO DE STOCK
@@ -1208,7 +1204,6 @@ return (
                 </CardDescription>
               </CardHeader>
               <CardContent ref={printRef} className="print-area">
-                <CardContent ref={printRef} className="print-area">
 
   <div className="mb-6 border-b pb-3">
     <h2 className="text-xl font-bold">
