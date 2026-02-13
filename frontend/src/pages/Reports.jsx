@@ -991,7 +991,7 @@ return (
     <p className="text-sm">
       Data: {new Date().toLocaleDateString()}
     </p>
-  </div>>
+  </div>
                 {/* Estatísticas Gerais */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-gray-50'}`}>
