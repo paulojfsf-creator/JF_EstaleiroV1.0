@@ -54,10 +54,10 @@ Atualizados: ${data.atualizados}`);
   } catch (e) {
     alert("Erro ao sincronizar");
   }
-};
-<Button onClick={syncGoogle}>
+    <Button onClick={syncGoogle}>
   Sincronizar Google Sheets
 </Button>
+};
   const { token } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
