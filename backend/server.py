@@ -1584,71 +1584,76 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
-import csv
+import pandas as pd
 import requests
 from io import StringIO
 
 @api_router.post("/equipamentos/sync-google")
-async def sync_equipamentos_google(user=Depends(get_current_user)):
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-Kbk849FmpGSvBh3GOUYHnFIbcbAXE6YDmCs5Ns9p1d5NMAyLfo2Z7xDe6ClGsC7UeWSEgbLEyd4L/pub?gid=1389915865&single=true&output=csv"
+async def sync_google_equipamentos(user=Depends(get_current_user)):
+    try:
+        url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-Kbk849FmpGSvBh3GOUYHnFIbcbAXE6YDmCs5Ns9p1d5NMAyLfo2Z7xDe6ClGsC7UeWSEgbLEyd4L/pub?gid=1389915865&single=true&output=csv"
+        
+        r = requests.get(url)
+        r.raise_for_status()
 
-    response = requests.get(url)
-    response.raise_for_status()
+        df = pd.read_csv(StringIO(r.text))
 
-    csv_data = StringIO(response.text)
-    reader = csv.DictReader(csv_data)
+        # remover linhas vazias
+        df = df[df["Codigo"].notna()]
 
-    updated = 0
-    created = 0
+        atualizados = 0
+        criados = 0
 
-    for row in reader:
-        codigo = (row.get("Codigo") or "").strip()
-        if not codigo:
-            continue
+        for _, row in df.iterrows():
+            codigo = str(row["Codigo"]).strip()
 
-        existing = await db.equipamentos.find_one({"codigo": codigo})
+            if not codigo:
+                continue
 
-        dados = {
-            "descricao": row.get("Descricao"),
-            "marca": row.get("Marca"),
-            "modelo": row.get("Modelo"),
-            "numero_serie": row.get("Numero_Serie"),
-            "responsavel": row.get("Responsavel"),
-            "estado_conservacao": row.get("Estado_Conservacao"),
-            "foto": row.get("Foto"),
-            "categoria": row.get("Categoria"),
-            "localizacao_atual": row.get("Localizacao_Atual"),
+            existing = await db.equipamentos.find_one({"codigo": codigo})
+
+            dados = {
+                "tipo": row.get("Tipo"),
+                "descricao": row.get("Descricao"),
+                "marca": row.get("Marca"),
+                "modelo": row.get("Modelo"),
+                "numero_serie": row.get("Numero_Serie"),
+                "categoria": row.get("Categoria"),
+                "responsavel": row.get("Responsavel"),
+                "estado_conservacao": row.get("Estado_Conservacao"),
+                "foto": row.get("Foto"),
+                "localizacao_atual": row.get("Localizacao_Atual"),
+            }
+
+            # limpar NaN
+            dados = {k: v for k, v in dados.items() if pd.notna(v)}
+
+            if existing:
+                update_fields = {}
+
+                for k, v in dados.items():
+                    if not existing.get(k):
+                        update_fields[k] = v
+
+                if update_fields:
+                    await db.equipamentos.update_one(
+                        {"codigo": codigo},
+                        {"$set": update_fields}
+                    )
+                    atualizados += 1
+            else:
+                novo = {
+                    "codigo": codigo,
+                    **dados
+                }
+                await db.equipamentos.insert_one(novo)
+                criados += 1
+
+        return {
+            "status": "ok",
+            "criados": criados,
+            "atualizados": atualizados
         }
 
-        # Remove vazios
-        dados = {k: v for k, v in dados.items() if v}
-
-        if existing:
-            update_fields = {}
-
-            for k, v in dados.items():
-                if not existing.get(k):
-                    update_fields[k] = v
-
-            if update_fields:
-                await db.equipamentos.update_one(
-                    {"codigo": codigo},
-                    {"$set": update_fields}
-                )
-                updated += 1
-        else:
-            novo = {
-                "id": str(uuid.uuid4()),
-                "codigo": codigo,
-                **dados
-            }
-            await db.equipamentos.insert_one(novo)
-            created += 1
-
-    return {
-        "created": created,
-        "updated": updated
-    }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
