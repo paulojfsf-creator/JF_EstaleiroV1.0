@@ -40,40 +40,31 @@ import PdfUpload from "@/components/PdfUpload";
 const estadoOptions = ["Bom", "Razoável", "Mau"];
 
 export default function Equipamentos() {
-  const syncGoogle = async () => {
-  try {
-    const res = await fetch(`${API}/equipamentos/sync-google`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await res.json();
-
-    toast.success(
-      `Sync concluído: ${data.criados} criados, ${data.atualizados} atualizados`
-    );
-
-    fetchData(); // atualiza lista
-  } catch (e) {
-    toast.error("Erro ao sincronizar com Google Sheets");
-  }
-};
-    const data = await res.json();
-
-    toast.success(`Sincronização concluída
-Criados: ${data.criados}
-Atualizados: ${data.atualizados}`);
-
-    fetchData(); // atualiza lista
-  } catch (e) {
-    toast.error("Erro ao sincronizar com Google Sheets");
-  }
-};
 
   const { token } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
   const isDark = theme === "dark";
+
+  const syncGoogle = async () => {
+    try {
+      const res = await fetch(`${API}/equipamentos/sync-google`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+
+      toast.success(`Sync concluído
+Criados: ${data.criados}
+Atualizados: ${data.atualizados}`);
+      
+      fetchData(); // atualiza lista
+    } catch (e) {
+      toast.error("Erro ao sincronizar");
+    }
+  };
+
   
   const [equipamentos, setEquipamentos] = useState([]);
   const [obras, setObras] = useState([]);
@@ -266,14 +257,14 @@ Atualizados: ${data.atualizados}`);
   return (
     <div data-testid="equipamentos-page">
     <div className="flex gap-2">
-      <Button
-      onClick={syncGoogle}
-      variant="outline"
-      >
-      Sincronizar Google Sheets
-    </Button>
+  <Button
+    onClick={syncGoogle}
+    variant="outline"
+  >
+    Sincronizar Google Sheets
+  </Button>
 
-    <Button
+  <Button
     onClick={() => { resetForm(); setDialogOpen(true); }}
     className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
   >
@@ -281,7 +272,6 @@ Atualizados: ${data.atualizados}`);
     Novo Equipamento
   </Button>
 </div>
-
       {/* Search */}
       <div className="mb-6 relative max-w-md">
         <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
