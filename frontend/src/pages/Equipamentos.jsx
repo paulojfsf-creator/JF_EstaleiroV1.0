@@ -42,22 +42,23 @@ const estadoOptions = ["Bom", "Razoável", "Mau"];
 export default function Equipamentos() {
   const syncGoogle = async () => {
   try {
-    const res = await fetch(`${API_URL}/equipamentos/sync-google`, {
+    const res = await fetch(`${API}/equipamentos/sync-google`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` }
     });
 
     const data = await res.json();
-    alert(`Sync concluído:
+
+    toast.success(`Sincronização concluída
 Criados: ${data.criados}
 Atualizados: ${data.atualizados}`);
+
+    fetchData(); // atualiza lista
   } catch (e) {
-    alert("Erro ao sincronizar");
+    toast.error("Erro ao sincronizar com Google Sheets");
   }
-    <Button onClick={syncGoogle}>
-  Sincronizar Google Sheets
-</Button>
 };
+
   const { token } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -253,18 +254,23 @@ Atualizados: ${data.atualizados}`);
 
   return (
     <div data-testid="equipamentos-page">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className={`text-2xl font-bold flex items-center gap-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            <Wrench className="h-7 w-7 text-orange-500" />
-            Equipamentos
-          </h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Gestão de equipamentos do armazém</p>
-        </div>
-        <Button onClick={() => { resetForm(); setDialogOpen(true); }} className="bg-orange-500 hover:bg-orange-600 text-black font-semibold" data-testid="add-equipamento-btn">
-          <Plus className="h-4 w-4 mr-2" /> Novo Equipamento
-        </Button>
-      </div>
+      <div className="flex gap-2">
+  <Button
+    onClick={syncGoogle}
+    variant="outline"
+    className="border-blue-500 text-blue-500 hover:bg-blue-500/10"
+  >
+    Sincronizar Google Sheets
+  </Button>
+
+  <Button
+    onClick={() => { resetForm(); setDialogOpen(true); }}
+    className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
+  >
+    <Plus className="h-4 w-4 mr-2" />
+    Novo Equipamento
+  </Button>
+</div>
 
       {/* Search */}
       <div className="mb-6 relative max-w-md">
