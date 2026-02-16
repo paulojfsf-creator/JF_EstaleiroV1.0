@@ -605,3 +605,22 @@ export default function Equipamentos() {
     </div>
   );
 }
+const syncGoogle = async () => {
+  try {
+    const res = await fetch(`${API_URL}/equipamentos/sync-google`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    alert(`Sync concluído:
+Criados: ${data.criados}
+Atualizados: ${data.atualizados}`);
+  } catch (e) {
+    alert("Erro ao sincronizar");
+  }
+};
+<Button onClick={syncGoogle}>
+  Sincronizar Google Sheets
+</Button>
+
