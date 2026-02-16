@@ -1438,15 +1438,6 @@ Atualizados: ${data.updated}`);
                     accept=".xlsx,.xls"
                     className="hidden"
                   />
-                  <Button
-                    onClick={handleImportClick}
-                    disabled={uploading}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-black font-semibold"
-                    data-testid="import-excel-btn"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    {uploading ? "A importar..." : "Importar Excel"}
-                  </Button>
                 </CardContent>
               </Card>
             </div>
