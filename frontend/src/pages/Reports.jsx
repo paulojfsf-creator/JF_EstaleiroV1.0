@@ -431,6 +431,29 @@ export default function Reports() {
               <CardContent className="pt-6">
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                   <Button
+  onClick={async () => {
+    try {
+      const res = await fetch("/api/equipamentos/sync-google", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+
+      const data = await res.json();
+
+      alert(`Importação concluída:
+Criados: ${data.created}
+Atualizados: ${data.updated}`);
+    } catch (err) {
+      alert("Erro ao sincronizar");
+    }
+  }}
+  className="bg-blue-600 hover:bg-blue-700 text-white"
+>
+  Sincronizar Google Sheets
+</Button>
+                  <Button
                     onClick={() => { setActiveTab("movimentos"); fetchRelatorioMovimentos(); }}
                     variant={activeTab === "movimentos" ? "default" : "outline"}
                     className={activeTab === "movimentos" ? "bg-orange-500 hover:bg-orange-600 text-black" : (isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "")}
@@ -1433,27 +1456,5 @@ export default function Reports() {
     </>
   );
 } 
-<Button
-  onClick={async () => {
-    try {
-      const res = await fetch("/api/equipamentos/sync-google", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-      });
 
-      const data = await res.json();
-
-      alert(`Importação concluída:
-Criados: ${data.created}
-Atualizados: ${data.updated}`);
-    } catch (err) {
-      alert("Erro ao sincronizar");
-    }
-  }}
-  className="bg-blue-600 hover:bg-blue-700 text-white"
->
-  Sincronizar Google Sheets
-</Button>
 
