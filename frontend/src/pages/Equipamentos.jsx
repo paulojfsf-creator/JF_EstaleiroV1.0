@@ -45,6 +45,23 @@ export default function Equipamentos() {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const isDark = theme === "dark";
+  const syncGoogle = async () => {
+  try {
+    const res = await axios.post(`${API}/equipamentos/sync-google`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    toast.success(`Sync concluído:
+Criados: ${res.data.criados}
+Atualizados: ${res.data.atualizados}`);
+
+    fetchData();
+  } catch (err) {
+    console.error(err);
+    toast.error("Erro ao sincronizar com Google Sheets");
+  }
+};
+
   
   const [equipamentos, setEquipamentos] = useState([]);
   const [obras, setObras] = useState([]);
@@ -237,14 +254,23 @@ export default function Equipamentos() {
   return (
     <div data-testid="equipamentos-page">
     <div className="flex gap-2">
-   <Button
+  <Button
     onClick={() => { resetForm(); setDialogOpen(true); }}
     className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
   >
     <Plus className="h-4 w-4 mr-2" />
     Novo Equipamento
   </Button>
+
+  <Button
+    onClick={syncGoogle}
+    variant="outline"
+  >
+    <FileText className="h-4 w-4 mr-2" />
+    Sincronizar Google
+  </Button>
 </div>
+
       {/* Search */}
       <div className="mb-6 relative max-w-md">
         <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
