@@ -260,9 +260,10 @@ Atualizados: ${data.atualizados}`);
     variant="outline"
     className="border-blue-500 text-blue-500 hover:bg-blue-500/10"
   >
+    <Plus className="h-4 w-4 mr-2" />
     Sincronizar Google Sheets
   </Button>
-
+  
   <Button
     onClick={() => { resetForm(); setDialogOpen(true); }}
     className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
