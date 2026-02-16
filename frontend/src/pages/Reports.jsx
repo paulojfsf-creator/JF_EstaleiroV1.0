@@ -1433,3 +1433,27 @@ export default function Reports() {
     </>
   );
 } 
+<Button
+  onClick={async () => {
+    try {
+      const res = await fetch("/api/equipamentos/sync-google", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+
+      const data = await res.json();
+
+      alert(`Importação concluída:
+Criados: ${data.created}
+Atualizados: ${data.updated}`);
+    } catch (err) {
+      alert("Erro ao sincronizar");
+    }
+  }}
+  className="bg-blue-600 hover:bg-blue-700 text-white"
+>
+  Sincronizar Google Sheets
+</Button>
+
