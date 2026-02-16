@@ -44,8 +44,24 @@ export default function Equipamentos() {
   try {
     const res = await fetch(`${API}/equipamentos/sync-google`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
+
+    const data = await res.json();
+
+    toast.success(
+      `Sincronização concluída
+Criados: ${data.criados}
+Atualizados: ${data.atualizados}`
+    );
+
+    fetchData(); // atualizar lista
+  } catch (e) {
+    toast.error("Erro ao sincronizar com Google Sheets");
+  }
+};
 
     const data = await res.json();
 
@@ -254,24 +270,22 @@ Atualizados: ${data.atualizados}`);
 
   return (
     <div data-testid="equipamentos-page">
-      <div className="flex gap-2">
-  <Button
+    <div className="flex gap-2">
+    <Button
     onClick={syncGoogle}
     variant="outline"
-    className="border-blue-500 text-blue-500 hover:bg-blue-500/10"
-  >
-    <Plus className="h-4 w-4 mr-2" />
+    >
     Sincronizar Google Sheets
-  </Button>
-  
-  <Button
+    </Button>
+
+    <Button
     onClick={() => { resetForm(); setDialogOpen(true); }}
     className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
   >
-    <Plus className="h-4 w-4 mr-2" />
-    Novo Equipamento
+    <Plus className="h-4 w-4 mr-2" /> Novo Equipamento
   </Button>
 </div>
+
 
       {/* Search */}
       <div className="mb-6 relative max-w-md">
