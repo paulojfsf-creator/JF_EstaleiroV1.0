@@ -20,6 +20,14 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from openpyxl import Workbook, load_workbook
 import resend
+import cloudinary
+import cloudinary.uploader
+
+resend.api_key = os.environ.get('RESEND_API_KEY', '')
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET")
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -361,22 +369,29 @@ async def upload_file(file: UploadFile = File(...), user=Depends(get_current_use
 
 @api_router.post("/upload/pdf")
 async def upload_pdf(file: UploadFile = File(...), user=Depends(get_current_user)):
-    """Upload PDF documents (manuals, certificates, etc.)"""
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Apenas ficheiros PDF são permitidos")
-    
-    # Max 10MB
+
     content = await file.read()
+
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Ficheiro demasiado grande (máx. 10MB)")
-    
-    filename = f"{uuid.uuid4()}.pdf"
-    filepath = UPLOAD_DIR / filename
-    
-    with open(filepath, "wb") as f:
-        f.write(content)
-    
-    return {"url": f"/api/uploads/{filename}", "filename": filename, "original_name": file.filename}
+
+    try:
+        result = cloudinary.uploader.upload(
+            content,
+            resource_type="raw",  # IMPORTANTE para PDF
+            folder="pdfs"
+        )
+
+        return {
+            "url": result["secure_url"],
+            "public_id": result["public_id"],
+            "original_name": file.filename
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/uploads/{filename}")
 async def get_upload(filename: str):
