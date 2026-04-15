@@ -108,9 +108,6 @@ class Equipamento(EquipamentoCreate):
     tipo: str = "Equipamento"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-const [editOpen, setEditOpen] = useState(false);
-
-
 # ==================== VIATURA MODEL ====================
 class ViaturaCreate(BaseModel):
     matricula: str
