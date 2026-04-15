@@ -51,12 +51,21 @@ export default function PdfUpload({ value, onChange, label = "Carregar PDF", isD
     onChange("");
   };
 
-  const getFullUrl = (url) => {
-    if (!url) return "";
-    if (url.startsWith("http")) return url;
-    if (url.startsWith("/api")) return `${process.env.REACT_APP_BACKEND_URL}${url}`;
-    return url;
-  };
+  const getPreviewUrl = (url) => {
+  if (!url) return "";
+
+  let finalUrl = url;
+
+  if (url.startsWith("/api")) {
+    finalUrl = `${process.env.REACT_APP_BACKEND_URL}${url}`;
+  }
+
+  if (finalUrl.includes("cloudinary.com")) {
+    finalUrl = finalUrl.replace("/upload/", "/upload/fl_attachment:false/");
+  }
+
+  return finalUrl;
+};
 
   return (
     <div className="space-y-2">
@@ -71,12 +80,13 @@ export default function PdfUpload({ value, onChange, label = "Carregar PDF", isD
       {value ? (
         <div className={`flex items-center gap-3 p-3 rounded-lg border ${isDark ? 'bg-neutral-700/50 border-neutral-600' : 'bg-gray-50 border-gray-200'}`}>
           <FileText className="h-5 w-5 text-red-500 flex-shrink-0" />
-          <a 
-            href={getFullUrl(value)} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className={`flex-1 text-sm truncate hover:underline ${isDark ? 'text-neutral-200' : 'text-gray-700'}`}
-          >
+         <button
+  type="button"
+  onClick={() => setPreviewOpen(true)}
+  className={`flex-1 text-sm truncate text-left hover:underline ${isDark ? 'text-neutral-200' : 'text-gray-700'}`}
+>
+  {value.split("/").pop()}
+</button>
             {value.split("/").pop()}
           </a>
           <Button
@@ -113,3 +123,32 @@ export default function PdfUpload({ value, onChange, label = "Carregar PDF", isD
     </div>
   );
 }
+{previewOpen && (
+  <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+    
+    <div className="relative w-full max-w-5xl h-[90vh] bg-white rounded-lg overflow-hidden">
+      
+      {/* Header */}
+      <div className="flex items-center justify-between p-3 border-b">
+        <span className="text-sm font-medium">
+          {value?.split("/").pop()}
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setPreviewOpen(false)}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* PDF Viewer */}
+      <iframe
+        src={getPreviewUrl(value)}
+        className="w-full h-full"
+        title="PDF Preview"
+      />
+      
+    </div>
+  </div>
+)}
