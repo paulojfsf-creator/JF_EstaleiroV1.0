@@ -15,24 +15,16 @@ export default function PdfCard({
           : "bg-gray-50 border-gray-200"
       }`}
     >
-      <FileText className="h-5 w-5 text-red-500 flex-shrink-0" />
+      <FileText className="h-5 w-5 text-red-500" />
 
       <button
-        type="button"
         onClick={onPreview}
-        className={`flex-1 text-sm truncate text-left hover:underline ${
-          isDark ? "text-neutral-200" : "text-gray-700"
-        }`}
+        className="flex-1 text-sm truncate text-left hover:underline"
       >
         {fileName}
       </button>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={onRemove}
-      >
+      <Button variant="ghost" size="icon" onClick={onRemove}>
         <X className="h-4 w-4" />
       </Button>
     </div>
