@@ -11,22 +11,20 @@ export default function PdfModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-5xl h-[90vh] bg-white rounded-lg overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b">
-          <span className="text-sm font-medium">{fileName}</span>
+      <div className="w-full max-w-5xl h-[90vh] bg-white rounded-lg overflow-hidden">
+        <div className="flex justify-between items-center p-3 border-b">
+          <span className="text-sm">{fileName}</span>
 
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
+          <Button variant="ghost" onClick={onClose}>
+            <X />
           </Button>
         </div>
 
-        {/* PDF Viewer */}
         <iframe
           src={url}
           className="w-full h-full"
