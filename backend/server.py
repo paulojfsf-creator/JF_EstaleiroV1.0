@@ -51,9 +51,6 @@ if not JWT_SECRET:
     logger.warning("JWT_SECRET not set! Using default for development only.")
 JWT_ALGORITHM = 'HS256'
 
-UPLOAD_DIR = ROOT_DIR / 'uploads'
-UPLOAD_DIR.mkdir(exist_ok=True)
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -356,32 +353,36 @@ async def get_me(user=Depends(get_current_user)):
 async def upload_file(file: UploadFile = File(...), user=Depends(get_current_user)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Only image files are allowed")
-    
-    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-    filename = f"{uuid.uuid4()}.{ext}"
-    filepath = UPLOAD_DIR / filename
-    
-    content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
-    
-    return {"url": f"/api/uploads/{filename}", "filename": filename}
+
+    try:
+        content = await file.read()
+
+        result = cloudinary.uploader.upload(
+            content,
+            folder="armazem",  # opcional (organização)
+            resource_type="image"
+        )
+
+        return {
+            "url": result["secure_url"],
+            "public_id": result["public_id"]
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/upload/pdf")
 async def upload_pdf(file: UploadFile = File(...), user=Depends(get_current_user)):
     if file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="Apenas ficheiros PDF são permitidos")
-
-    content = await file.read()
-
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Ficheiro demasiado grande (máx. 10MB)")
+        raise HTTPException(status_code=400, detail="Apenas PDF permitido")
 
     try:
+        content = await file.read()
+
         result = cloudinary.uploader.upload(
             content,
-            resource_type="raw",  # IMPORTANTE para PDF
-            folder="pdfs"
+            folder="armazem_docs",
+            resource_type="raw"  # 🔥 IMPORTANTE para PDF
         )
 
         return {
@@ -392,23 +393,6 @@ async def upload_pdf(file: UploadFile = File(...), user=Depends(get_current_user
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@api_router.get("/uploads/{filename}")
-async def get_upload(filename: str):
-    filepath = UPLOAD_DIR / filename
-    if not filepath.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-    
-    ext = filename.split(".")[-1].lower()
-    content_types = {
-        "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", 
-        "gif": "image/gif", "webp": "image/webp", "pdf": "application/pdf"
-    }
-    
-    with open(filepath, "rb") as f:
-        content = f.read()
-    
-    return Response(content=content, media_type=content_types.get(ext, "application/octet-stream"))
 
 # ==================== EQUIPAMENTO ROUTES ====================
 @api_router.get("/equipamentos")
