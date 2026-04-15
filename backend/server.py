@@ -102,8 +102,6 @@ class Equipamento(EquipamentoCreate):
     tipo: str = "Equipamento"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-import { Pencil } from "lucide-react";
-
 const [editOpen, setEditOpen] = useState(false);
 
 <Button onClick={() => setEditOpen(true)}>
@@ -157,8 +155,6 @@ class Viatura(ViaturaCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-import { Pencil } from "lucide-react";
-
 const [editOpen, setEditOpen] = useState(false);
 
 <Button onClick={() => setEditOpen(true)}>
@@ -188,8 +184,6 @@ class Material(MaterialCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-
-import { Pencil } from "lucide-react";
 
 const [editOpen, setEditOpen] = useState(false);
 
