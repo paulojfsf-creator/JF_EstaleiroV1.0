@@ -385,13 +385,13 @@ async def upload_pdf(
         content = await file.read()
 
         # 🔥 Upload correto para Cloudinary
-        result = cloudinary.uploader.upload(
+       result = cloudinary.uploader.upload(
     content,
     folder="armazem_docs",
-    resource_type="auto",
+    resource_type="image",   # 👈 MUDA ISTO
+    type="upload",           # 👈 garante público
+    access_mode="public",    # 👈 evita 401
     format="pdf",
-    type="upload",
-    access_mode="public",
     use_filename=True,
     unique_filename=True,
 )
