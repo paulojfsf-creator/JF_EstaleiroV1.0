@@ -102,7 +102,6 @@ class Equipamento(EquipamentoCreate):
     tipo: str = "Equipamento"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-import ResourceForm from "@/components/forms/ResourceForm";
 import { Pencil } from "lucide-react";
 
 const [editOpen, setEditOpen] = useState(false);
@@ -158,7 +157,6 @@ class Viatura(ViaturaCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-import ResourceForm from "@/components/forms/ResourceForm";
 import { Pencil } from "lucide-react";
 
 const [editOpen, setEditOpen] = useState(false);
@@ -191,7 +189,6 @@ class Material(MaterialCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-import ResourceForm from "@/components/forms/ResourceForm";
 import { Pencil } from "lucide-react";
 
 const [editOpen, setEditOpen] = useState(false);
