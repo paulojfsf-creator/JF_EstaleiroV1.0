@@ -386,13 +386,15 @@ async def upload_pdf(
 
         # 🔥 Upload correto para Cloudinary
         result = cloudinary.uploader.upload(
-            content,
-            folder="armazem_docs",
-            resource_type="auto",   # ✅ detecta corretamente PDF
-            format="pdf",           # ✅ garante extensão .pdf
-            use_filename=True,      # opcional (usa nome original)
-            unique_filename=True,   # evita conflitos
-        )
+    content,
+    folder="armazem_docs",
+    resource_type="auto",
+    format="pdf",
+    type="upload",
+    access_mode="public",
+    use_filename=True,
+    unique_filename=True,
+)
 
         return {
             "url": result["secure_url"],        # já vem com .pdf
