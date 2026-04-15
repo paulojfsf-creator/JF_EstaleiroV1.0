@@ -12,10 +12,8 @@ export default function PdfUpload({
   isDark = true,
 }) {
   const { token } = useAuth();
-
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-
   const fileInputRef = useRef(null);
 
   // ---------- Handlers ----------
@@ -23,7 +21,6 @@ export default function PdfUpload({
   const handleFileSelect = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     if (file.type !== "application/pdf") {
       toast.error("Por favor selecione um ficheiro PDF.");
       return;
