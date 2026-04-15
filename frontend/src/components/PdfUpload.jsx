@@ -27,7 +27,6 @@ export default function PdfUpload({
     }
     uploadFile(file);
   };
-
   const uploadFile = async (file) => {
     try {
       setUploading(true);
@@ -40,7 +39,6 @@ export default function PdfUpload({
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       onChange(data.url);
       toast.success("PDF carregado com sucesso!");
     } catch (error) {
@@ -50,16 +48,13 @@ export default function PdfUpload({
       setUploading(false);
     }
   };
-
-  const handleRemove = () => {
+const handleRemove = () => {
     onChange("");
     setPreviewOpen(false);
   };
-
   const openFilePicker = () => {
     fileInputRef.current?.click();
   };
-
   const closePreview = () => {
     setPreviewOpen(false);
   };
@@ -79,10 +74,8 @@ export default function PdfUpload({
         "/upload/fl_attachment:false/"
       );
     }
-
     return finalUrl;
   };
-
   const fileName = value?.split("/").pop();
 
   // ---------- Render Helpers ----------
@@ -108,7 +101,6 @@ export default function PdfUpload({
       )}
     </Button>
   );
-
   const renderFileInfo = () => (
     <div
       className={`flex items-center gap-3 p-3 rounded-lg border ${
@@ -118,7 +110,6 @@ export default function PdfUpload({
       }`}
     >
       <FileText className="h-5 w-5 text-red-500 flex-shrink-0" />
-
       <button
         type="button"
         onClick={() => setPreviewOpen(true)}
@@ -128,7 +119,6 @@ export default function PdfUpload({
       >
         {fileName}
       </button>
-
       <Button
         type="button"
         variant="ghost"
@@ -139,7 +129,6 @@ export default function PdfUpload({
       </Button>
     </div>
   );
-
   const renderModal = () => {
     if (!previewOpen) return null;
     return (
@@ -182,9 +171,7 @@ export default function PdfUpload({
         onChange={handleFileSelect}
         className="hidden"
       />
-
       {value ? renderFileInfo() : renderUploadButton()}
-
       {renderModal()}
     </div>
   );
