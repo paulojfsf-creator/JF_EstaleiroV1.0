@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Upload, FileText, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+const [previewOpen, setPreviewOpen] = useState(false);
 
 export default function PdfUpload({ value, onChange, label = "Carregar PDF", isDark = true }) {
   const { token } = useAuth();
@@ -88,7 +89,6 @@ export default function PdfUpload({ value, onChange, label = "Carregar PDF", isD
   {value.split("/").pop()}
 </button>
             {value.split("/").pop()}
-          </a>
           <Button
             type="button"
             variant="ghost"
@@ -148,6 +148,47 @@ export default function PdfUpload({ value, onChange, label = "Carregar PDF", isD
         className="w-full h-full"
         title="PDF Preview"
       />
+      return (
+  <div className="space-y-2">
+
+    {/* ... resto do código */}
+
+    {previewOpen && (
+      <div
+        className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setPreviewOpen(false);
+        }}
+      >
+        <div className="relative w-full max-w-5xl h-[90vh] bg-white rounded-lg overflow-hidden">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between p-3 border-b">
+            <span className="text-sm font-medium">
+              {value?.split("/").pop()}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPreviewOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* PDF */}
+          <iframe
+            src={getPreviewUrl(value)}
+            className="w-full h-full"
+            title="PDF Preview"
+          />
+        </div>
+      </div>
+    )}
+
+  </div>
+);
+
       
     </div>
   </div>
