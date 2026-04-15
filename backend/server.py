@@ -377,27 +377,25 @@ async def upload_pdf(
     file: UploadFile = File(...),
     user=Depends(get_current_user)
 ):
-    # Validação robusta
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Apenas PDF permitido")
 
     try:
         content = await file.read()
 
-        # 🔥 Upload correto para Cloudinary
-       result = cloudinary.uploader.upload(
-    content,
-    folder="armazem_docs",
-    resource_type="image",   # 👈 MUDA ISTO
-    type="upload",           # 👈 garante público
-    access_mode="public",    # 👈 evita 401
-    format="pdf",
-    use_filename=True,
-    unique_filename=True,
-)
+        result = cloudinary.uploader.upload(
+            content,
+            folder="armazem_docs",
+            resource_type="image",
+            type="upload",
+            access_mode="public",
+            format="pdf",
+            use_filename=True,
+            unique_filename=True,
+        )
 
         return {
-            "url": result["secure_url"],        # já vem com .pdf
+            "url": result["secure_url"],
             "public_id": result["public_id"],
             "original_name": file.filename,
         }
