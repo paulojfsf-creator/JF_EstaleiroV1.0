@@ -395,6 +395,37 @@ async def upload_pdf(file: UploadFile = File(...), user=Depends(get_current_user
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+from fastapi.responses import Response
+
+@api_router.get("/uploads/{filename}")
+async def get_upload(filename: str):
+    filepath = UPLOAD_DIR / filename
+
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    ext = filename.split(".")[-1].lower()
+
+    content_types = {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "webp": "image/webp",
+        "pdf": "application/pdf"
+    }
+
+    with open(filepath, "rb") as f:
+        content = f.read()
+
+    return Response(
+        content=content,
+        media_type=content_types.get(ext, "application/octet-stream"),
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"'
+        }
+    )
+
 # ==================== EQUIPAMENTO ROUTES ====================
 @api_router.get("/equipamentos")
 async def get_equipamentos(user=Depends(get_current_user)):
