@@ -373,30 +373,35 @@ async def upload_file(file: UploadFile = File(...), user=Depends(get_current_use
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/upload/pdf")
-async def upload_pdf(file: UploadFile = File(...), user=Depends(get_current_user)):
+async def upload_pdf(
+    file: UploadFile = File(...),
+    user=Depends(get_current_user)
+):
+    # Validação robusta
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Apenas PDF permitido")
 
     try:
         content = await file.read()
 
+        # 🔥 Upload correto para Cloudinary
         result = cloudinary.uploader.upload(
             content,
             folder="armazem_docs",
-            resource_type="raw"  # 🔥 IMPORTANTE para PDF
+            resource_type="auto",   # ✅ detecta corretamente PDF
+            format="pdf",           # ✅ garante extensão .pdf
+            use_filename=True,      # opcional (usa nome original)
+            unique_filename=True,   # evita conflitos
         )
 
         return {
-            "url": result["secure_url"],
+            "url": result["secure_url"],        # já vem com .pdf
             "public_id": result["public_id"],
-            "original_name": file.filename
+            "original_name": file.filename,
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-from fastapi.responses import Response
-
 @api_router.get("/uploads/{filename}")
 async def get_upload(filename: str):
     filepath = UPLOAD_DIR / filename
