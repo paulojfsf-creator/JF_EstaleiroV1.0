@@ -15,7 +15,6 @@ export default function PdfUpload({
   isDark = true,
 }) {
   const { token } = useAuth();
-
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
