@@ -25,17 +25,14 @@ export default function PdfUpload({
       toast.error("Por favor selecione um ficheiro PDF.");
       return;
     }
-
     uploadFile(file);
   };
 
   const uploadFile = async (file) => {
     try {
       setUploading(true);
-
       const formData = new FormData();
       formData.append("file", file);
-
       const { data } = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/upload`,
         formData,
@@ -71,9 +68,7 @@ export default function PdfUpload({
 
   const getPreviewUrl = (url) => {
     if (!url) return "";
-
     let finalUrl = url;
-
     if (url.startsWith("/api")) {
       finalUrl = `${process.env.REACT_APP_BACKEND_URL}${url}`;
     }
@@ -147,7 +142,6 @@ export default function PdfUpload({
 
   const renderModal = () => {
     if (!previewOpen) return null;
-
     return (
       <div
         className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
@@ -181,7 +175,6 @@ export default function PdfUpload({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{label}</label>
-
       <input
         type="file"
         accept="application/pdf"
