@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Upload, Loader2 } from "lucide-react";
@@ -15,70 +15,100 @@ export default function PdfUpload({
   isDark = true,
 }) {
   const { token } = useAuth();
+
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   const fileInputRef = useRef(null);
 
-  // ---------- Handlers ----------
-
-  const handleFileSelect = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== "application/pdf") {
-      toast.error("Por favor selecione um ficheiro PDF.");
-      return;
-    }
-
-    await uploadFile(file);
-    event.target.value = ""; // allow re-upload same file
-  };
+  // ---------- Upload ----------
 
   const uploadFile = async (file) => {
     try {
       setUploading(true);
+      setProgress(0);
 
       const formData = new FormData();
       formData.append("file", file);
 
       const { data } = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/upload`,
+        `${process.env.REACT_APP_BACKEND_URL}/upload/pdf`,
         formData,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setProgress(percent);
+          },
         }
       );
 
       onChange(data.url);
       toast.success("PDF carregado com sucesso!");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erro ao carregar o PDF.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao carregar PDF");
     } finally {
       setUploading(false);
+      setProgress(0);
     }
   };
 
-  const handleRemove = () => {
-    onChange("");
-    setPreviewOpen(false);
+  // ---------- File select ----------
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      toast.error("Apenas PDF permitido");
+      return;
+    }
+
+    await uploadFile(file);
+    e.target.value = "";
   };
 
-  const openFilePicker = () => {
-    fileInputRef.current?.click();
+  // ---------- Drag & Drop ----------
+
+  const handleDrop = useCallback(async (e) => {
+    e.preventDefault();
+    setDragActive(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      toast.error("Apenas PDF permitido");
+      return;
+    }
+
+    await uploadFile(file);
+  }, []);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragActive(false);
   };
 
   // ---------- Utils ----------
+
+  const fileName = value?.split("/").pop() || "PDF";
 
   const getPreviewUrl = (url) => {
     if (!url) return "";
 
     let finalUrl = url;
-
-    if (url.startsWith("/api")) {
-      finalUrl = `${process.env.REACT_APP_BACKEND_URL}${url}`;
-    }
 
     if (finalUrl.includes("cloudinary.com")) {
       finalUrl = finalUrl.replace(
@@ -90,7 +120,14 @@ export default function PdfUpload({
     return finalUrl;
   };
 
-  const fileName = value?.split("/").pop() || "PDF";
+  // ---------- Actions ----------
+
+  const handleRemove = () => {
+    onChange("");
+    setPreviewOpen(false);
+  };
+
+  const openPicker = () => fileInputRef.current?.click();
 
   // ---------- Render ----------
 
@@ -107,25 +144,39 @@ export default function PdfUpload({
       />
 
       {!value ? (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={openFilePicker}
-          disabled={uploading}
-          className="w-full flex items-center gap-2"
+        <div
+          onClick={openPicker}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className={`w-full border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
+            dragActive
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-300"
+          }`}
         >
           {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              A carregar...
-            </>
+            <div className="space-y-2">
+              <Loader2 className="animate-spin mx-auto" />
+              <p>{progress}%</p>
+
+              {/* Progress bar */}
+              <div className="w-full bg-gray-200 rounded h-2">
+                <div
+                  className="bg-blue-500 h-2 rounded transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
           ) : (
             <>
-              <Upload className="h-4 w-4" />
-              Selecionar PDF
+              <Upload className="mx-auto mb-2" />
+              <p className="text-sm">
+                Arrasta um PDF ou clica para selecionar
+              </p>
             </>
           )}
-        </Button>
+        </div>
       ) : (
         <PdfCard
           fileName={fileName}
