@@ -46,6 +46,12 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 JWT_SECRET = os.environ.get('JWT_SECRET')
 if not JWT_SECRET:
     JWT_SECRET = 'warehouse-construction-secret-key-dev-only'
@@ -104,22 +110,6 @@ class Equipamento(EquipamentoCreate):
 
 const [editOpen, setEditOpen] = useState(false);
 
-<Button onClick={() => setEditOpen(true)}>
-  <Pencil className="w-4 h-4 mr-2" />
-  Editar
-</Button>
-
-{editOpen && (
-  <ResourceForm
-    type="equipamento"
-    initialData={equipamento}
-    onClose={() => setEditOpen(false)}
-    onSuccess={(updated) => {
-      setEquipamento(updated);
-      setEditOpen(false);
-    }}
-  />
-)}
 
 # ==================== VIATURA MODEL ====================
 class ViaturaCreate(BaseModel):
@@ -155,21 +145,6 @@ class Viatura(ViaturaCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-const [editOpen, setEditOpen] = useState(false);
-
-<Button onClick={() => setEditOpen(true)}>
-  <Pencil className="w-4 h-4 mr-2" />
-  Editar
-</Button>
-
-{editOpen && (
-<ResourceForm
-  type="viatura"
-    onClose={() => setEditOpen(false)}
-    onSuccess={(updated) => {
-      setviatura(updated);
-      setEditOpen(false);
-/>
 
 # ==================== MATERIAL MODEL ====================
 class MaterialCreate(BaseModel):
@@ -184,22 +159,6 @@ class Material(MaterialCreate):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-
-const [editOpen, setEditOpen] = useState(false);
-
-<Button onClick={() => setEditOpen(true)}>
-  <Pencil className="w-4 h-4 mr-2" />
-  Editar
-</Button>
-
-{editOpen && (
-  <ResourceForm
-  type="material"
-  onClose={() => setEditOpen(false)}
-    onSuccess={(updated) => {
-      setmaterial(updated);
-      setEditOpen(false);
-/>
 
 # ==================== OBRA MODEL ====================
 class ObraCreate(BaseModel):
