@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/App";
 import { toast } from "sonner";
 
 const CONFIG = {
