@@ -25,7 +25,7 @@ export default function PdfUpload({
 
   // ---------- Upload ----------
 
-  const uploadFile = async (file) => {
+  const uploadFile = useCallback(async (file) => {
     try {
       setUploading(true);
       setProgress(0);
@@ -58,7 +58,7 @@ export default function PdfUpload({
       setUploading(false);
       setProgress(0);
     }
-  };
+  }, [token, onChange]);
 
   // ---------- File select ----------
 
