@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/app";
 
 import PdfCard from "./PdfCard";
 import PdfModal from "./PdfModal";
